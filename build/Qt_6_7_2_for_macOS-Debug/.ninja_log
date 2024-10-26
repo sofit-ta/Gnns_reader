@@ -1,0 +1,27 @@
+# ninja log v6
+215	252	1728028310487996356	CMakeFiles/gnss_reader_prototype.dir/gnss_reader_prototype_autogen/EWIEGA46WW/qrc_resorces.cpp.o	43e995c72696f919
+197	219	1728027673477296927	gnss_reader_prototype_autogen/EWIEGA46WW/qrc_resorces.cpp	1c64b9bdfdd79080
+45	890	1728050027815795728	CMakeFiles/gnss_reader_prototype.dir/mainwindow.cpp.o	2d2c89758ac84dc8
+18	45	1728050027789011941	gnss_reader_prototype_autogen/timestamp	bc7acd747d0e6f6a
+197	219	1728027673477296927	/Users/sofia/Desktop/научная_работа/gnss_reader_prototype/build/Qt_6_7_2_for_macOS-Debug/gnss_reader_prototype_autogen/EWIEGA46WW/qrc_resorces.cpp	1c64b9bdfdd79080
+45	850	1728050027816000478	CMakeFiles/gnss_reader_prototype.dir/satellite_window.cpp.o	9460baf0dc13ee2a
+18	45	1728050027789011941	gnss_reader_prototype_autogen/mocs_compilation.cpp	bc7acd747d0e6f6a
+18	45	1728050027789011941	/Users/sofia/Desktop/научная_работа/gnss_reader_prototype/build/Qt_6_7_2_for_macOS-Debug/gnss_reader_prototype_autogen/timestamp	bc7acd747d0e6f6a
+896	1050	1727473344769259409	gnss_reader_prototype.app/Contents/MacOS/gnss_reader_prototype	4e3102b0c7ba71cf
+12	17	1727470407442486357	clean	474ea03a032d037
+3	373	1728050085687302286	build.ninja	4a0a8ba4868fe8f9
+2	12	1727470407432351452	CMakeFiles/clean.additional	e343120c4f2b9ed8
+18	45	1728050027789011941	/Users/sofia/Desktop/научная_работа/gnss_reader_prototype/build/Qt_6_7_2_for_macOS-Debug/gnss_reader_prototype_autogen/mocs_compilation.cpp	bc7acd747d0e6f6a
+163	1187	1728049276488592910	CMakeFiles/gnss_reader_prototype.dir/gnss_reader_prototype_autogen/mocs_compilation.cpp.o	bee575d9bfd92989
+214	952	1728028310487252605	CMakeFiles/gnss_reader_prototype.dir/main.cpp.o	cd844697fd72af20
+2	150	1728050085687302286	build.ninja	4a0a8ba4868fe8f9
+17	182	1728050085874393000	gnss_reader_prototype_autogen/timestamp	bc7acd747d0e6f6a
+17	182	1728050085874393000	gnss_reader_prototype_autogen/mocs_compilation.cpp	bc7acd747d0e6f6a
+17	182	1728050085874393000	/Users/sofia/Desktop/научная_работа/gnss_reader_prototype/build/Qt_6_7_2_for_macOS-Debug/gnss_reader_prototype_autogen/timestamp	bc7acd747d0e6f6a
+17	182	1728050085874393000	/Users/sofia/Desktop/научная_работа/gnss_reader_prototype/build/Qt_6_7_2_for_macOS-Debug/gnss_reader_prototype_autogen/mocs_compilation.cpp	bc7acd747d0e6f6a
+183	214	1728050085883645604	CMakeFiles/gnss_reader_prototype.dir/gnss_reader_prototype_autogen/EWIEGA46WW/qrc_resorces.cpp.o	aef20d712c069f92
+182	917	1728050085882555733	CMakeFiles/gnss_reader_prototype.dir/gnss_reader_prototype_autogen/mocs_compilation.cpp.o	fde1d7d42ddfa5ee
+182	929	1728050085882844815	CMakeFiles/gnss_reader_prototype.dir/main.cpp.o	b4806c11aa9a8b56
+183	1020	1728050085883429563	CMakeFiles/gnss_reader_prototype.dir/satellite_window.cpp.o	4f4f8e1c3ca0366d
+183	1053	1728050085883134523	CMakeFiles/gnss_reader_prototype.dir/mainwindow.cpp.o	f71300dbc48fec68
+1053	1157	1728050086753673560	gnss_reader_prototype.app/Contents/MacOS/gnss_reader_prototype	60fd9a71a3cf2a92

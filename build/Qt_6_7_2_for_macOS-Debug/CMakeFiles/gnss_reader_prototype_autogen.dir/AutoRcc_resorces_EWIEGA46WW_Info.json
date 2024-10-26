@@ -1,0 +1,22 @@
+{
+	"BUILD_DIR" : "/Users/sofia/Desktop/\u043d\u0430\u0443\u0447\u043d\u0430\u044f_\u0440\u0430\u0431\u043e\u0442\u0430/gnss_reader_prototype/build/Qt_6_7_2_for_macOS-Debug/gnss_reader_prototype_autogen",
+	"CMAKE_BINARY_DIR" : "/Users/sofia/Desktop/\u043d\u0430\u0443\u0447\u043d\u0430\u044f_\u0440\u0430\u0431\u043e\u0442\u0430/gnss_reader_prototype/build/Qt_6_7_2_for_macOS-Debug",
+	"CMAKE_CURRENT_BINARY_DIR" : "/Users/sofia/Desktop/\u043d\u0430\u0443\u0447\u043d\u0430\u044f_\u0440\u0430\u0431\u043e\u0442\u0430/gnss_reader_prototype/build/Qt_6_7_2_for_macOS-Debug",
+	"CMAKE_CURRENT_SOURCE_DIR" : "/Users/sofia/Desktop/\u043d\u0430\u0443\u0447\u043d\u0430\u044f_\u0440\u0430\u0431\u043e\u0442\u0430/gnss_reader_prototype",
+	"CMAKE_SOURCE_DIR" : "/Users/sofia/Desktop/\u043d\u0430\u0443\u0447\u043d\u0430\u044f_\u0440\u0430\u0431\u043e\u0442\u0430/gnss_reader_prototype",
+	"CROSS_CONFIG" : false,
+	"GENERATOR" : "Ninja",
+	"INCLUDE_DIR" : "/Users/sofia/Desktop/\u043d\u0430\u0443\u0447\u043d\u0430\u044f_\u0440\u0430\u0431\u043e\u0442\u0430/gnss_reader_prototype/build/Qt_6_7_2_for_macOS-Debug/gnss_reader_prototype_autogen/include",
+	"INPUTS" : [],
+	"LOCK_FILE" : "/Users/sofia/Desktop/\u043d\u0430\u0443\u0447\u043d\u0430\u044f_\u0440\u0430\u0431\u043e\u0442\u0430/gnss_reader_prototype/build/Qt_6_7_2_for_macOS-Debug/CMakeFiles/gnss_reader_prototype_autogen.dir/AutoRcc_resorces_EWIEGA46WW_Lock.lock",
+	"MULTI_CONFIG" : false,
+	"OPTIONS" : [ "--no-zstd", "-name", "resorces" ],
+	"OUTPUT_CHECKSUM" : "EWIEGA46WW",
+	"OUTPUT_NAME" : "qrc_resorces.cpp",
+	"RCC_EXECUTABLE" : "/Users/sofia/Qt/6.7.2/macos/./libexec/rcc",
+	"RCC_LIST_OPTIONS" : [ "--list" ],
+	"SETTINGS_FILE" : "/Users/sofia/Desktop/\u043d\u0430\u0443\u0447\u043d\u0430\u044f_\u0440\u0430\u0431\u043e\u0442\u0430/gnss_reader_prototype/build/Qt_6_7_2_for_macOS-Debug/CMakeFiles/gnss_reader_prototype_autogen.dir/AutoRcc_resorces_EWIEGA46WW_Used.txt",
+	"SOURCE" : "/Users/sofia/Desktop/\u043d\u0430\u0443\u0447\u043d\u0430\u044f_\u0440\u0430\u0431\u043e\u0442\u0430/gnss_reader_prototype/resorces.qrc",
+	"USE_BETTER_GRAPH" : false,
+	"VERBOSITY" : 0
+}

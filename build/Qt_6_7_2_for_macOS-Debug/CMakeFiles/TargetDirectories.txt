@@ -1,0 +1,9 @@
+/Users/sofia/Desktop/научная_работа/gnss_reader_prototype/build/Qt_6_7_2_for_macOS-Debug/CMakeFiles/gnss_reader_prototype.dir
+/Users/sofia/Desktop/научная_работа/gnss_reader_prototype/build/Qt_6_7_2_for_macOS-Debug/CMakeFiles/edit_cache.dir
+/Users/sofia/Desktop/научная_работа/gnss_reader_prototype/build/Qt_6_7_2_for_macOS-Debug/CMakeFiles/rebuild_cache.dir
+/Users/sofia/Desktop/научная_работа/gnss_reader_prototype/build/Qt_6_7_2_for_macOS-Debug/CMakeFiles/list_install_components.dir
+/Users/sofia/Desktop/научная_работа/gnss_reader_prototype/build/Qt_6_7_2_for_macOS-Debug/CMakeFiles/install.dir
+/Users/sofia/Desktop/научная_работа/gnss_reader_prototype/build/Qt_6_7_2_for_macOS-Debug/CMakeFiles/install/local.dir
+/Users/sofia/Desktop/научная_работа/gnss_reader_prototype/build/Qt_6_7_2_for_macOS-Debug/CMakeFiles/install/strip.dir
+/Users/sofia/Desktop/научная_работа/gnss_reader_prototype/build/Qt_6_7_2_for_macOS-Debug/CMakeFiles/gnss_reader_prototype_autogen_timestamp_deps.dir
+/Users/sofia/Desktop/научная_работа/gnss_reader_prototype/build/Qt_6_7_2_for_macOS-Debug/CMakeFiles/gnss_reader_prototype_autogen.dir
