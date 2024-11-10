@@ -15,7 +15,7 @@ MainWindow::MainWindow(QWidget *parent)
     // Инициализация списка названий столбцов
     list_names = {
         "Временная метка", "Широта, N", "Долгота, E",
-        "Высота", "Значение высоты", "Скорость по северу", "Скорость по востоку", "Скорость по вертикали",
+        "Высота", "Скорость по северу", "Скорость по востоку", "Скорость по вертикали",
         "Погрешность по северу", "Погрешность по северо-востоку", "Погрешность по вертикали", "Погрешность по востоку",
         "Погрешность по вертикали", "Погрешность по вертикали", "Вариация по северу", "Вариация по северо-востоку",
         "Вариация по вертикали", "Вариация по востоку", "Вариация по вертикали", "Вариация по вертикали"
@@ -29,7 +29,7 @@ MainWindow::MainWindow(QWidget *parent)
     model2->setHorizontalHeaderLabels({"Parameter", "Value"});
 
     // Инициализация таблицы
-    fill_the_table();
+    fill_the_table(true);
 
     // Инициализация таймера
     timer = new QTimer(this);
@@ -107,9 +107,20 @@ void MainWindow::updateTable() {
         timer->stop(); // Остановка таймера, если кнопка была нажата
     }
 }
-
+QColor MainWindow::updateColor(const QString key,ResultStructure parced_data){
+    QDateTime curr_time = QDateTime::currentDateTime();
+    QDateTime last_update_time = parced_data.getUpdateTime(key.toStdString());
+    qDebug()<<key<<last_update_time.msecsTo(curr_time);
+    if (last_update_time.msecsTo(curr_time) <= 5000) {
+        return Qt::green;
+    } else if (last_update_time.msecsTo(curr_time) <= 10000){
+        return Qt::yellow;
+    } else {
+        return Qt::red;
+    }
+}
 // Метод для заполнения таблицы данными
-void MainWindow::fill_the_table() {
+void MainWindow::fill_the_table(bool first_time) {
     if (re == nullptr) {
         qDebug() << "Ошибка: объект re не инициализирован.";
         return;
@@ -126,12 +137,17 @@ void MainWindow::fill_the_table() {
         qDebug() << "Нет данных для отображения.";
         return;
     }
-
+    QStringList keys = {
+        "Timestamp", "Lat", "Long",
+        "Alt", "VelN", "VelE", "VelV",
+        "PCovN", "PCovNE", "PCovNV", "PCovE",
+        "PCovEV", "PCovV", "VCovN", "VCovNE",
+        "VCovNV", "VCovE", "VCovEV", "VCovV"
+    };
     list_results << QString::number(parced_data.Timestamp)
                  << QString::number(parced_data.Lat)
                  << QString::number(parced_data.Long)
                  << QString::number(parced_data.Alt)
-                 << parced_data.AltVal
                  << QString::number(parced_data.VelN)
                  << QString::number(parced_data.VelE)
                  << QString::number(parced_data.VelV)
@@ -157,6 +173,9 @@ void MainWindow::fill_the_table() {
 
         QStandardItem *resultItem = new QStandardItem(list_results.at(row));
         resultItem->setFlags(Qt::ItemIsEnabled); // Только для чтения
+        if (!first_time){
+            resultItem->setBackground(updateColor(keys.at(row),parced_data));
+        }
         model2->setItem(row, 1, resultItem);
     }
 

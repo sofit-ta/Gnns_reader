@@ -7,6 +7,11 @@
 #include <QVector>
 #include <QString>
 #include <QDebug>
+#include <QtCore/qdatetime.h>
+#include <iostream>
+
+
+
 
 class MainWindow;
 struct ResultStructure {
@@ -34,7 +39,103 @@ struct ResultStructure {
     double VCovEV = 0.0;
     double VCovV = 0.0;
     QString Checksum = "";
+
+    std::unordered_map<std::string, QDateTime> lastUpdated;
+
+    using ValueType = std::variant<QString, double>;
+
+    // Обновитель
+    std::unordered_map<std::string, std::function<void(ValueType)>> updater;
+
+
+
+    ResultStructure() {
+        // Initialize the updater map with lambda functions for each member
+        updater["Timestamp"] = [this](ValueType value) {Timestamp = std::get<double>(value); };
+        updater["Lat"] = [this](ValueType value) {Lat = std::get<double>(value); };
+        updater["Long"] = [this](ValueType value) {Long = std::get<double>(value); };
+        updater["Alt"] = [this](ValueType value) {Alt = std::get<double>(value); };
+        updater["VelN"] = [this](ValueType value) {VelN = std::get<double>(value); };
+        updater["VelE"] = [this](ValueType value) {VelE = std::get<double>(value); };
+        updater["VelV"] = [this](ValueType value) {VelV = std::get<double>(value); };
+        updater["NS"] = [this](ValueType value) { NS = std::get<QString>(value); };
+        updater["EW"] = [this](ValueType value) { EW = std::get<QString>(value); };
+        updater["AltVal"] = [this](ValueType value) { AltVal = std::get<QString>(value); };
+        updater["PCovN"] = [this](ValueType value) { PCovN = std::get<double>(value); };
+        updater["PCovNE"] = [this](ValueType value) { PCovNE = std::get<double>(value); };
+
+        updater["PCovN"] = [this](ValueType value) { PCovN = std::get<double>(value); };
+        updater["PCovNE"] = [this](ValueType value) { PCovNE = std::get<double>(value); };
+        updater["PCovNV"] = [this](ValueType value) { PCovNV = std::get<double>(value); };
+        updater["PCovE"] = [this](ValueType value) { PCovE = std::get<double>(value); };
+        updater["PCovEV"] = [this](ValueType value) { PCovEV = std::get<double>(value); };
+        updater["PCovV"] = [this](ValueType value) { PCovV = std::get<double>(value); };
+        updater["VCovN"] = [this](ValueType value) { VCovN = std::get<double>(value); };
+        updater["VCovNE"] = [this](ValueType value) { VCovNE = std::get<double>(value); };
+        updater["VCovNV"] = [this](ValueType value) { VCovNV = std::get<double>(value); };
+        updater["VCovE"] = [this](ValueType value) { VCovE = std::get<double>(value); };
+        updater["VCovEV"] = [this](ValueType value) { VCovEV = std::get<double>(value); };
+        updater["VCovV"] = [this](ValueType value) { VCovV = std::get<double>(value); };
+        updater["Checksum"] = [this](ValueType value) { Checksum = std::get<QString>(value); };
+    }
+
+    void updateValue(const std::string& key, ValueType value) {
+        auto it = updater.find(key);
+        //std::visit([](auto&& arg) { qDebug() << "Type:" << typeid(arg).name() << "Value:" << arg; }, value);
+        if (std::holds_alternative<QString>(value)) {
+            QString strValue = std::get<QString>(value);
+            //qDebug() << "QString value:" << strValue;
+            if (strValue.isEmpty() &&lastUpdated[key].toString()=="") {
+                qDebug() << "QString value:" << strValue;
+                lastUpdated[key] = QDateTime::currentDateTime().addSecs(-10);
+                qDebug() << "Updated lastUpdated[" << QString::fromStdString(key) << "] to:" << lastUpdated[key].toString();
+                return;
+            }else if(strValue.isEmpty()){
+                lastUpdated[key] = lastUpdated[key].addSecs(-5);
+                qDebug() << "Updated lastUpdated[" << QString::fromStdString(key) << "] to:" << lastUpdated[key].toString();
+                return;
+            }
+        }
+        if (std::holds_alternative<double>(value)) {
+            double dblValue = std::get<double>(value);
+            //qDebug() << "Double value:" << dblValue;
+            if (dblValue == 0.0&&lastUpdated[key].toString()=="") {
+                qDebug() << "Double value:" << dblValue;
+                lastUpdated[key] = QDateTime::currentDateTime().addSecs(-10);
+                qDebug() << "Updated lastUpdated[" << QString::fromStdString(key) << "] to:" << lastUpdated[key].toString();
+                return;
+            }else if(dblValue == 0.0){
+                qDebug() << "Double value:" << dblValue;
+                lastUpdated[key] = lastUpdated[key].addSecs(-5);
+                qDebug() << "Updated lastUpdated[" << QString::fromStdString(key) << "] to:" << lastUpdated[key].toString();
+                return;
+            }
+        }
+        if (it != updater.end()) {
+            it->second(value);  // Update the member
+            lastUpdated[key] = QDateTime::currentDateTime();  // Update timestamp
+        } else {
+            std::cerr << "Key not found: " << key << "\n";
+        }
+    }
+
+    QDateTime getUpdateTime(const std::string& key) const {
+        auto it = lastUpdated.find(key);
+        if (it != lastUpdated.end()) {
+            return it->second;
+        } else {
+            return QDateTime(); // Returns an invalid QDateTime if key is not found
+        }
+    }
+
+    void printLastUpdatedTimes() const {
+        for (const auto& [key, time] : lastUpdated) {
+            std::cout << key << ": " << time.toString().toStdString() << "\n";
+        }
+    }
+
 };
+
 
 
 class read : public QAbstractItemModel {

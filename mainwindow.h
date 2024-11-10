@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 
+#include "read.h"
 #include "satellite_window.h"
 #include <QMainWindow>
 #include <QtCore/qstringlistmodel.h>
@@ -22,7 +23,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     static bool button_is_pressed;
-    void fill_the_table();
+    void fill_the_table(bool first_time);
     void on_open_file_triggered();
 
 private slots:
@@ -39,6 +40,7 @@ private slots:
 
     void stopReadingData();
     void updateTable(); // Добавляем слот для обновления таблицы
+    QColor updateColor(const QString key, ResultStructure parced_data);
 
 private:
     Ui::MainWindow *ui;
