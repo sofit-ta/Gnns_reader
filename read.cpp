@@ -66,7 +66,11 @@ void read::file_reading(){
                 if (parts[1].contains(",") && parts[1].startsWith("$")) {
                     if (parts[1].startsWith("$PSTM")) {
                         // Передаем строку в метод для обработки данных
+                        no_new_data = false;
                         PSTM_reading(parts[1].split(","));
+                    } else if (parts[1].startsWith("$G")){
+                        no_new_data = false;
+                        NMEA_reading(parts[1].split(","));
                     }
                 }
             }
@@ -74,7 +78,85 @@ void read::file_reading(){
     }
     file.close();
 }
+void read::NMEA_reading(QStringList list_of_param) {
+    qDebug()<<"yes";
+    QString syntax = list_of_param[0];
+    qDebug()<<syntax;
+    syntax.removeAt(0);
+    syntax.removeAt(0);
+    syntax.removeAt(0);
+    for(int i = 0; i < list_of_param.length(); ++i){
+        if(list_of_param[i]==""){
+            list_of_param[i]="inf";
+        }
+    }
+    qDebug()<<syntax;
+    if(syntax == "GGA"){
+        qDebug()<<"yes yes";
+        QString time_string = list_of_param.at(1);
+        QString fmt_time_string = time_string.mid(0, 2) + ":" + time_string.mid(2, 2) + ":" + time_string.mid(4, 2) + "." + time_string.mid(7, 3);
+        QTime timestampnotDouble = QTime::fromString(fmt_time_string, "hh:mm:ss.zzz");
 
+        data_info.updateValue("Timestamp",static_cast<double>(timestampnotDouble.msecsSinceStartOfDay()));
+        qDebug()<<data_info.Timestamp;
+        data_info.updateValue("Lat",list_of_param[2].mid(0, 2).toDouble() + list_of_param.at(2).mid(2).toDouble() / 60);
+        data_info.updateValue("Long", list_of_param.at(3).mid(0, 3).toDouble() + list_of_param.at(3).mid(3).toDouble() / 60);
+
+        data_info.updateValue("EW", list_of_param.at(4));
+        data_info.updateValue("GPSQual",list_of_param.at(5).toDouble());
+        data_info.updateValue("Sats",list_of_param.at(6).toDouble());
+        data_info.updateValue("HDOP",list_of_param.at(7).toDouble());
+        data_info.updateValue("Alt",list_of_param.at(8).toDouble());
+        data_info.updateValue("AltVal", list_of_param.at(9));
+        data_info.updateValue("GeoSep",list_of_param.at(10).toDouble());
+        data_info.updateValue("GeoVal",list_of_param.at(11));
+        data_info.updateValue("DGPSAge",list_of_param.at(12));
+
+        int starPos = list_of_param[13].indexOf("*");
+        int crlfPos = list_of_param[13].indexOf("\r\n");
+        if (starPos != -1 && crlfPos != -1) {
+            data_info.updateValue("Checksum",list_of_param[13].mid(starPos + 1, crlfPos - starPos - 1));
+            data_info.updateValue("DGPSRef", list_of_param[13].left(starPos));
+        }
+        qDebug() << "Данные добавлены в data_info";
+        if (mainWindow) {
+            qDebug() << "entered";
+            mainWindow->fill_the_table(false);  // Теперь мы можем вызвать fill_the_table()
+        }
+    }
+    else if(syntax == "RMC"){
+        QString time_string = list_of_param.at(1);
+        QString fmt_time_string = time_string.mid(0, 2) + ":" + time_string.mid(2, 2) + ":" + time_string.mid(4, 2) + "." + time_string.mid(7, 3);
+        QTime timestampnotDouble = QTime::fromString(fmt_time_string, "hh:mm:ss.zzz");
+        data_info.updateValue("Timestamp",static_cast<double>(timestampnotDouble.msecsSinceStartOfDay()));
+        data_info.updateValue("Status",list_of_param.at(2));
+        data_info.updateValue("Lat",list_of_param[3].mid(0, 2).toDouble() + list_of_param.at(3).mid(2).toDouble() / 60);
+        data_info.updateValue("NS", list_of_param.at(4));
+        data_info.updateValue("Long", list_of_param.at(5).mid(0, 3).toDouble() + list_of_param.at(5).mid(3).toDouble() / 60);
+        data_info.updateValue("EW", list_of_param.at(6));
+        data_info.updateValue("Speed",list_of_param.at(7).toDouble());
+        data_info.updateValue("TrackGood",list_of_param.at(8).toDouble());
+        data_info.updateValue("Date",QDateTime::fromString(list_of_param[9], "ddMMyy").addYears(100));
+        data_info.updateValue("MagVar",list_of_param.at(10).toDouble());
+        data_info.updateValue("MagVarDir",list_of_param.at(11).toDouble());
+
+
+        int starPos = list_of_param[12].indexOf("*");
+        int crlfPos = list_of_param[12].indexOf("\r\n");
+        if (starPos != -1 && crlfPos != -1) {
+            data_info.updateValue("Checksum",list_of_param[12].mid(starPos + 1, crlfPos - starPos - 1));
+            data_info.updateValue("Mode", list_of_param[12].left(starPos));
+        }
+        qDebug() << "Данные добавлены в data_info";
+        if (mainWindow) {
+            qDebug() << "entered";
+            mainWindow->fill_the_table(false);  // Теперь мы можем вызвать fill_the_table()
+        }
+    }
+    else{
+        no_new_data = true;
+    }
+}
 // Метод для обработки команды PSTM
 void read::PSTM_reading(QStringList list_of_param) {
     //if (list_of_param.size() < 23) {
@@ -84,8 +166,28 @@ void read::PSTM_reading(QStringList list_of_param) {
 
     QString syntax = list_of_param[0];
     syntax.remove("$PSTM");
-
-    if (syntax == "PV") {
+    for(int i = 0; i < list_of_param.length(); ++i){
+        if(list_of_param[i]==""){
+            list_of_param[i]="inf";
+        }
+    }
+    if(syntax == "DIFF"){
+        // data_info.updateValue("ListSize",list_of_param[0]);
+        // data_info.updateValue("NCS",list_of_param[1]);
+        // int number_of_sats = data_info.ListSize;
+        // QVector<QVector<double>> sat_corr_list_array;
+        // int counter_of_arr_pos = 2;
+        // for (int counter_of_pairs = 0; counter_of_pairs < number_of_sats; ++counter_of_pairs) {
+        //     QVector<double> pair;
+        //     pair.append(list_of_param[counter_of_arr_pos]);
+        //     pair.append(list_of_param[counter_of_arr_pos + 1]);
+        //     sat_corr_list_array.append(pair);
+        //     counter_of_arr_pos += 2;
+        // }
+        // data_info.updateValue("SatsCorrAvl",sat_corr_list_array);
+        // data_info.updateValue("Checksum",list_of_param[list_of_param.size() - 1]);
+    }
+    else if (syntax == "PV") {
         //qDebug() << list_of_param;
 
         QString time_string = list_of_param.at(1);
@@ -129,11 +231,13 @@ void read::PSTM_reading(QStringList list_of_param) {
             qDebug() << "Error: The string does not contain two parts separated by '*'. Value:" << list_of_param.at(22);
         }
         qDebug() << "Данные добавлены в data_info";
-        no_new_data = false;
         if (mainWindow) {
             qDebug() << "entered";
             mainWindow->fill_the_table(false);  // Теперь мы можем вызвать fill_the_table()
         }
+    }
+    else{
+        no_new_data = true;
     }
 }
 

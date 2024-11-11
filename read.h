@@ -40,9 +40,27 @@ struct ResultStructure {
     double VCovV = 0.0;
     QString Checksum = "";
 
+    double ListSize;
+    double NCS;
+    QVector<QVector<double>> SatsCorrAvl;
+
+    double GPSQual;
+    double Sats;
+    double HDOP;
+    double GeoSep;
+    QString GeoVal;
+    QString DGPSAge;
+    QString DGPSRef;
+
+    double Speed;
+    double TrackGood;
+    QDateTime Date;
+    double MagVar;
+    QString MagVarDir;
+
     std::unordered_map<std::string, QDateTime> lastUpdated;
 
-    using ValueType = std::variant<QString, double>;
+    using ValueType = std::variant<QString, double,QVector<double>,QDateTime,QVector<QVector<double>>>;
 
     // Обновитель
     std::unordered_map<std::string, std::function<void(ValueType)>> updater;
@@ -77,6 +95,22 @@ struct ResultStructure {
         updater["VCovEV"] = [this](ValueType value) { VCovEV = std::get<double>(value); };
         updater["VCovV"] = [this](ValueType value) { VCovV = std::get<double>(value); };
         updater["Checksum"] = [this](ValueType value) { Checksum = std::get<QString>(value); };
+
+        updater["GPSQual"] = [this](ValueType value) { GPSQual = std::get<double>(value); };
+        updater["Sats"] = [this](ValueType value) { Sats = std::get<double>(value); };
+        updater["HDOP"] = [this](ValueType value) { HDOP = std::get<double>(value); };
+        updater["GeoSep"] = [this](ValueType value) { GeoSep = std::get<double>(value); };
+        updater["GeoVal"] = [this](ValueType value) { GeoVal = std::get<QString>(value); };
+        updater["DGPSAge"] = [this](ValueType value) { DGPSAge = std::get<QString>(value); };
+        updater["DGPSRef"] = [this](ValueType value) { DGPSRef = std::get<QString>(value); };
+
+        updater["Speed"] = [this](ValueType value) { Speed = std::get<double>(value); };
+        updater["TrackGood"] = [this](ValueType value) { TrackGood = std::get<double>(value); };
+        updater["Date"] = [this](ValueType value) { Date = std::get<QDateTime>(value); };
+        updater["MagVar"] = [this](ValueType value) { MagVar = std::get<double>(value); };
+        updater["MagVarDir"] = [this](ValueType value) { MagVarDir = std::get<QString>(value); };
+
+
     }
 
     void updateValue(const std::string& key, ValueType value) {
@@ -85,13 +119,12 @@ struct ResultStructure {
         if (std::holds_alternative<QString>(value)) {
             QString strValue = std::get<QString>(value);
             //qDebug() << "QString value:" << strValue;
-            if (strValue.isEmpty() &&lastUpdated[key].toString()=="") {
+            if (strValue=="inf" &&lastUpdated[key].toString()=="") {
                 qDebug() << "QString value:" << strValue;
                 lastUpdated[key] = QDateTime::currentDateTime().addSecs(-10);
                 qDebug() << "Updated lastUpdated[" << QString::fromStdString(key) << "] to:" << lastUpdated[key].toString();
                 return;
-            }else if(strValue.isEmpty()){
-                lastUpdated[key] = lastUpdated[key].addSecs(-5);
+            }else if(strValue=="inf"){
                 qDebug() << "Updated lastUpdated[" << QString::fromStdString(key) << "] to:" << lastUpdated[key].toString();
                 return;
             }
@@ -99,12 +132,12 @@ struct ResultStructure {
         if (std::holds_alternative<double>(value)) {
             double dblValue = std::get<double>(value);
             //qDebug() << "Double value:" << dblValue;
-            if (dblValue == 0.0&&lastUpdated[key].toString()=="") {
+            if (dblValue == INFINITY&&lastUpdated[key].toString()=="") {
                 qDebug() << "Double value:" << dblValue;
                 lastUpdated[key] = QDateTime::currentDateTime().addSecs(-10);
                 qDebug() << "Updated lastUpdated[" << QString::fromStdString(key) << "] to:" << lastUpdated[key].toString();
                 return;
-            }else if(dblValue == 0.0){
+            }else if(dblValue == INFINITY){
                 qDebug() << "Double value:" << dblValue;
                 lastUpdated[key] = lastUpdated[key].addSecs(-5);
                 qDebug() << "Updated lastUpdated[" << QString::fromStdString(key) << "] to:" << lastUpdated[key].toString();
@@ -173,6 +206,7 @@ public:
 private:
     // Метод для обработки команды PSTM
     void PSTM_reading(QStringList list_of_param);
+    void NMEA_reading(QStringList list_of_param);
     MainWindow *mainWindow;
     QString path_to_parcing_file;
 
