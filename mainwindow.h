@@ -41,6 +41,7 @@ private slots:
     void stopReadingData();
     void updateTable(); // Добавляем слот для обновления таблицы
     QColor updateColor(const QString key, ResultStructure parced_data);
+    void updateClock();
 
 private:
     Ui::MainWindow *ui;
@@ -49,7 +50,7 @@ private:
     QStandardItemModel*model2;
     Satellite_window*sw;
     read *re;
-    QTimer *timer; // Объявляем указатель на QTimer
+    QTimer *clocks; // Объявляем указатель на QTimer
     QStringList list_names; // Добавляем list_names как член класса
 };
 #endif // MAINWINDOW_H

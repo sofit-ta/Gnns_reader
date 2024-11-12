@@ -40,23 +40,34 @@ struct ResultStructure {
     double VCovV = 0.0;
     QString Checksum = "";
 
-    double ListSize;
-    double NCS;
+    QString Status = "";
+    double ListSize= 0.0;
+    double NCS = 0.0;
     QVector<QVector<double>> SatsCorrAvl;
 
-    double GPSQual;
-    double Sats;
-    double HDOP;
-    double GeoSep;
-    QString GeoVal;
-    QString DGPSAge;
-    QString DGPSRef;
+    double GPSQual = 0.0;
+    double Sats = 0.0;
+    double HDOP = 0.0;
+    double GeoSep = 0.0;
+    QString GeoVal = "";
+    QString DGPSAge = "";
+    QString DGPSRef = "";
 
-    double Speed;
-    double TrackGood;
+    double Speed = 0.0;
+    double TrackGood = 0.0;
     QDateTime Date;
-    double MagVar;
-    QString MagVarDir;
+    double MagVar = 0.0;
+    QString MagVarDir = "";
+
+    double TMGT = 0.0;
+    QString T = "";
+    double TMGM = 0.0;
+    QString M = "";
+    double SoGN = 0.0;
+    QString N = "";
+    double SoGK = 0.0;
+    QString K = "";
+    QString D = "";
 
     std::unordered_map<std::string, QDateTime> lastUpdated;
 
@@ -96,6 +107,11 @@ struct ResultStructure {
         updater["VCovV"] = [this](ValueType value) { VCovV = std::get<double>(value); };
         updater["Checksum"] = [this](ValueType value) { Checksum = std::get<QString>(value); };
 
+        updater["Status"] = [this](ValueType value) { Status = std::get<QString>(value); };
+        updater["ListSize"] = [this](ValueType value) { ListSize = std::get<double>(value); };
+        updater["NCS"] = [this](ValueType value) { NCS = std::get<double>(value); };
+        updater["SatsCorrAvl"] = [this](ValueType value) { SatsCorrAvl = std::get<QVector<QVector<double>>>(value); };
+
         updater["GPSQual"] = [this](ValueType value) { GPSQual = std::get<double>(value); };
         updater["Sats"] = [this](ValueType value) { Sats = std::get<double>(value); };
         updater["HDOP"] = [this](ValueType value) { HDOP = std::get<double>(value); };
@@ -104,13 +120,20 @@ struct ResultStructure {
         updater["DGPSAge"] = [this](ValueType value) { DGPSAge = std::get<QString>(value); };
         updater["DGPSRef"] = [this](ValueType value) { DGPSRef = std::get<QString>(value); };
 
-        updater["Speed"] = [this](ValueType value) { Speed = std::get<double>(value); };
         updater["TrackGood"] = [this](ValueType value) { TrackGood = std::get<double>(value); };
         updater["Date"] = [this](ValueType value) { Date = std::get<QDateTime>(value); };
         updater["MagVar"] = [this](ValueType value) { MagVar = std::get<double>(value); };
         updater["MagVarDir"] = [this](ValueType value) { MagVarDir = std::get<QString>(value); };
 
-
+        updater["TMGT"] = [this](ValueType value) { TMGT = std::get<double>(value); };
+        updater["TMGM"] = [this](ValueType value) { TMGM = std::get<double>(value); };
+        updater["SoGN"] = [this](ValueType value) { SoGN = std::get<double>(value); };
+        updater["SoGK"] = [this](ValueType value) { SoGK = std::get<double>(value); };
+        updater["T"] = [this](ValueType value) { T = std::get<QString>(value); };
+        updater["M"] = [this](ValueType value) { M = std::get<QString>(value); };
+        updater["N"] = [this](ValueType value) { N = std::get<QString>(value); };
+        updater["K"] = [this](ValueType value) { K = std::get<QString>(value); };
+        updater["D"] = [this](ValueType value) { D = std::get<QString>(value); };
     }
 
     void updateValue(const std::string& key, ValueType value) {
@@ -181,6 +204,7 @@ public:
     void file_reading();
     void updateParcingFile(QString fileName);
 
+    QTime clock_time;
     // Вектор для хранения всех данных
     ResultStructure data_info;
     // Реализация обязательных методов
@@ -207,8 +231,10 @@ private:
     // Метод для обработки команды PSTM
     void PSTM_reading(QStringList list_of_param);
     void NMEA_reading(QStringList list_of_param);
+    void Lat_Log(std::string key, double Coord);
     MainWindow *mainWindow;
     QString path_to_parcing_file;
+    bool change_time_new_file;
 
 };
 

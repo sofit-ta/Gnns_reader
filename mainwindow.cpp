@@ -14,11 +14,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Инициализация списка названий столбцов
     list_names = {
-        "Временная метка", "Широта, N", "Долгота, E",
-        "Высота", "Скорость по северу", "Скорость по востоку", "Скорость по вертикали",
-        "Погрешность по северу", "Погрешность по северо-востоку", "Погрешность по вертикали", "Погрешность по востоку",
-        "Погрешность по вертикали", "Погрешность по вертикали", "Вариация по северу", "Вариация по северо-востоку",
-        "Вариация по вертикали", "Вариация по востоку", "Вариация по вертикали", "Вариация по вертикали"
+        "Широта, N", "Долгота, E",
+        "Высота", "Скорость, км/ч", "Направление, градусы"
     };
 
     QStringList list_results;
@@ -32,8 +29,8 @@ MainWindow::MainWindow(QWidget *parent)
     fill_the_table(true);
 
     // Инициализация таймера
-    timer = new QTimer(this);
-    connect(timer, &QTimer::timeout, this, &MainWindow::updateTable);
+    //timer = new QTimer(this);
+    //connect(timer, &QTimer::timeout, this, &MainWindow::updateTable);
 
     model = new QStringListModel(this);
     QStringList list_of_s1 = {"32","11","14","01"};
@@ -48,6 +45,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->pushButton, &QPushButton::clicked, this, &MainWindow::startReadingData);
     connect(ui->pushButton_2, &QPushButton::clicked, this, &MainWindow::stopReadingData);
     connect(ui->open_file, &QAction::triggered, this, &MainWindow::on_open_file_triggered);
+
+    clocks = new QTimer(this);
+    connect(clocks, &QTimer::timeout, this, &MainWindow::updateClock);
+
 
 }
 
@@ -65,6 +66,13 @@ void MainWindow::on_listView_clicked(const QModelIndex &index)
     ui->statusbar->showMessage("Выбран спутник "+ selectedText);
 }
 
+void MainWindow::updateClock() {
+    re->clock_time = re->clock_time.addSecs(1);
+    qDebug()<<re->clock_time.toString("hh:mm:ss");
+    QString currentTime = re->clock_time.toString("hh:mm:ss");
+    ui->clock->setText(currentTime);
+    updateTable();
+}
 
 void MainWindow::on_listView_2_clicked(const QModelIndex &index)
 {
@@ -94,17 +102,22 @@ void MainWindow::startReadingData()
 {
     qDebug() << "start";
     button_is_pressed = false; // Сброс состояния
+    // Запускаем таймер
+    clocks->start(1000); // обновляется каждую секунду
 
+    // Обновляем сразу же, чтобы пользователь увидел начальное значение
+    //updateClock();
     // Запускаем таймер с интервалом 10 секунд
-    timer->start(5000); // 10000 миллисекунд = 10 секунд
+    //timer->start(5000); // 10000 миллисекунд = 10 секунд
 
 }
 void MainWindow::updateTable() {
     if (!button_is_pressed) {
         // Читаем данные из файла
         re->file_reading();
-    } else {
-        timer->stop(); // Остановка таймера, если кнопка была нажата
+    }
+    else {
+         clocks->stop(); // Остановка таймера, если кнопка была нажата
     }
 }
 QColor MainWindow::updateColor(const QString key,ResultStructure parced_data){
@@ -119,6 +132,11 @@ QColor MainWindow::updateColor(const QString key,ResultStructure parced_data){
         return Qt::red;
     }
 }
+// QString MainWindow::last_value(QVector<double>) {
+//     // Добавьте вашу логику обработки данных SoGK здесь.
+//     // Например, округлим значение до двух знаков после запятой.
+//     return QString::number();
+// }
 // Метод для заполнения таблицы данными
 void MainWindow::fill_the_table(bool first_time) {
     if (re == nullptr) {
@@ -138,31 +156,15 @@ void MainWindow::fill_the_table(bool first_time) {
         return;
     }
     QStringList keys = {
-        "Timestamp", "Lat", "Long",
-        "Alt", "VelN", "VelE", "VelV",
-        "PCovN", "PCovNE", "PCovNV", "PCovE",
-        "PCovEV", "PCovV", "VCovN", "VCovNE",
-        "VCovNV", "VCovE", "VCovEV", "VCovV"
+        "Lat", "Long",
+        "Alt", "SoGN", "TMGT"
     };
-    list_results << QString::number(parced_data.Timestamp)
+    list_results
                  << QString::number(parced_data.Lat)
                  << QString::number(parced_data.Long)
                  << QString::number(parced_data.Alt)
-                 << QString::number(parced_data.VelN)
-                 << QString::number(parced_data.VelE)
-                 << QString::number(parced_data.VelV)
-                 << QString::number(parced_data.PCovN)
-                 << QString::number(parced_data.PCovNE)
-                 << QString::number(parced_data.PCovNV)
-                 << QString::number(parced_data.PCovE)
-                 << QString::number(parced_data.PCovEV)
-                 << QString::number(parced_data.PCovV)
-                 << QString::number(parced_data.VCovN)
-                 << QString::number(parced_data.VCovNE)
-                 << QString::number(parced_data.VCovNV)
-                 << QString::number(parced_data.VCovE)
-                 << QString::number(parced_data.VCovEV)
-                 << QString::number(parced_data.VCovV);
+                 << QString::number(parced_data.SoGN)
+        << QString::number(parced_data.TMGT);
     //qDebug()<<"list_results"<<list_results;
 
     // Заполняем каждую строку таблицы
@@ -191,7 +193,8 @@ void MainWindow::stopReadingData()
 {
     qDebug() << "stop";
     button_is_pressed = true; // Установка флага
-    timer->stop();            // Остановка таймера
+    clocks->stop();
+    //timer->stop();            // Остановка таймера
 }
 
 
