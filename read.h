@@ -232,6 +232,7 @@ private:
     void PSTM_reading(QStringList list_of_param);
     void NMEA_reading(QStringList list_of_param);
     void Lat_Log(std::string key, double Coord);
+    void Checksum_reading(QString str,std::string key);
     MainWindow *mainWindow;
     QString path_to_parcing_file;
     bool change_time_new_file;
