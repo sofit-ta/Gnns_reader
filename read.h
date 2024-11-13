@@ -69,6 +69,26 @@ struct ResultStructure {
     QString K = "";
     QString D = "";
 
+    double EHPE;
+    double SemiMajor;
+    double SemiMinor;
+    double Angle;
+    double LatErr;
+    double LonErr;
+    double AltErr;
+
+    double SatPRN;
+    QString Res;
+
+    QString ModeIndicator;
+
+    QString LocalDatumCode;
+    QString LocalDatumCodeID;
+    double LatOffset;
+    double LongOffset;
+    double AltOffset;
+    QString ReferenceDatumCode;
+
     std::unordered_map<std::string, QDateTime> lastUpdated;
 
     using ValueType = std::variant<QString, double,QVector<double>,QDateTime,QVector<QVector<double>>>;
@@ -134,6 +154,26 @@ struct ResultStructure {
         updater["N"] = [this](ValueType value) { N = std::get<QString>(value); };
         updater["K"] = [this](ValueType value) { K = std::get<QString>(value); };
         updater["D"] = [this](ValueType value) { D = std::get<QString>(value); };
+
+        updater["EHPE"] = [this](ValueType value) { EHPE = std::get<double>(value); };
+        updater["SemiMajor"] = [this](ValueType value) { SemiMajor = std::get<double>(value); };
+        updater["SemiMinor"] = [this](ValueType value) { SemiMinor = std::get<double>(value); };
+        updater["Angle"] = [this](ValueType value) { Angle = std::get<double>(value); };
+        updater["LatErr"] = [this](ValueType value) { LatErr = std::get<double>(value); };
+        updater["LonErr"] = [this](ValueType value) { LonErr = std::get<double>(value); };
+        updater["AltErr"] = [this](ValueType value) { AltErr = std::get<double>(value); };
+
+        updater["SatPRN"] = [this](ValueType value) { SatPRN = std::get<double>(value); };
+        updater["Res"] = [this](ValueType value) { Res = std::get<QString>(value); };
+
+        updater["ModeIndicator"] = [this](ValueType value) { ModeIndicator = std::get<QString>(value); };
+
+        updater["LocalDatumCode"] = [this](ValueType value) { LocalDatumCode = std::get<QString>(value); };
+        updater["LocalDatumCodeID"] = [this](ValueType value) { LocalDatumCodeID = std::get<QString>(value); };
+        updater["LatOffset"] = [this](ValueType value) { LatOffset = std::get<double>(value); };
+        updater["LongOffset"] = [this](ValueType value) { LongOffset = std::get<double>(value); };
+        updater["AltOffset"] = [this](ValueType value) { AltOffset = std::get<double>(value); };
+        updater["ReferenceDatumCode"] = [this](ValueType value) { ReferenceDatumCode = std::get<QString>(value); };
     }
 
     void updateValue(const std::string& key, ValueType value) {
@@ -232,7 +272,8 @@ private:
     void PSTM_reading(QStringList list_of_param);
     void NMEA_reading(QStringList list_of_param);
     void Lat_Log(std::string key, double Coord);
-    void Checksum_reading(QString str,std::string key);
+    void Checksum_reading_STR(QString str,std::string key);
+    void Checksum_reading_Double(QString str,std::string key);
     MainWindow *mainWindow;
     QString path_to_parcing_file;
     bool change_time_new_file;

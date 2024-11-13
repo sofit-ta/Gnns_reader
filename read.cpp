@@ -103,12 +103,22 @@ void read::Lat_Log(std::string key, double Coord){
 
     data_info.updateValue(key,degrees + (minutes / 60.0));
 }
-void read::Checksum_reading(QString str,std::string key){
+void read::Checksum_reading_STR(QString str,std::string key){
     int starPos = str.indexOf("*");
     int crlfPos = str.indexOf("\r\n");
     if (starPos != -1 && crlfPos != -1) {
         data_info.updateValue("Checksum",str.mid(starPos + 1, crlfPos - starPos - 1));
-        data_info.updateValue(key, str.left(starPos));
+        if(key!=""){
+            data_info.updateValue(key, str.left(starPos));}
+    }
+}
+void read::Checksum_reading_Double(QString str, std::string key){
+    int starPos = str.indexOf("*");
+    int crlfPos = str.indexOf("\r\n");
+    if (starPos != -1 && crlfPos != -1) {
+        data_info.updateValue("Checksum",str.mid(starPos + 1, crlfPos - starPos - 1));
+        if(key!=""){
+            data_info.updateValue(key, str.left(starPos).toDouble());}
     }
 }
 void read::NMEA_reading(QStringList list_of_param) {
@@ -124,7 +134,7 @@ void read::NMEA_reading(QStringList list_of_param) {
     qDebug()<<syntax;
     if(syntax == "GGA"){
         qDebug()<<"yes yes";
-        Checksum_reading(list_of_param.at(14),"DGPSRef");
+        Checksum_reading_STR(list_of_param.at(14),"DGPSRef");
         QTime timestampnotDouble = QTime::fromString(list_of_param.at(1), "hhmmss.zzz");
         data_info.updateValue("Timestamp",static_cast<double>(timestampnotDouble.msecsSinceStartOfDay()));
         qDebug()<<data_info.Timestamp;
@@ -145,7 +155,7 @@ void read::NMEA_reading(QStringList list_of_param) {
         data_info.updateValue("DGPSAge",list_of_param.at(13));
     }
     else if(syntax == "RMC"){
-        Checksum_reading(list_of_param.at(12),"Mode");
+        Checksum_reading_STR(list_of_param.at(12),"Mode");
         QTime timestampnotDouble = QTime::fromString(list_of_param.at(1), "hhmmss.zzz");
         data_info.updateValue("Timestamp",static_cast<double>(timestampnotDouble.msecsSinceStartOfDay()));
         data_info.updateValue("Status",list_of_param.at(2));
@@ -161,7 +171,7 @@ void read::NMEA_reading(QStringList list_of_param) {
 
     }
     else if(syntax == "GLL"){
-        Checksum_reading(list_of_param.at(7),"Mode");
+        Checksum_reading_STR(list_of_param.at(7),"Mode");
         Lat_Log("Lat",list_of_param[1].toDouble());
         data_info.updateValue("NS", list_of_param.at(2));
         Lat_Log("Long",list_of_param[3].toDouble());
@@ -169,11 +179,10 @@ void read::NMEA_reading(QStringList list_of_param) {
 
         QTime timestampnotDouble = QTime::fromString(list_of_param.at(5), "hhmmss.zzz");
         data_info.updateValue("Timestamp",static_cast<double>(timestampnotDouble.msecsSinceStartOfDay()));
-        data_info.updateValue("Timestamp",static_cast<double>(timestampnotDouble.msecsSinceStartOfDay()));
         data_info.updateValue("Status",list_of_param.at(6));
     }
     else if(syntax == "VTG"){
-        Checksum_reading(list_of_param.at(8),"D");
+        Checksum_reading_STR(list_of_param.at(8),"D");
         data_info.updateValue("TMGT",list_of_param.at(1).toDouble());
         data_info.updateValue("T",list_of_param.at(2));
         data_info.updateValue("TMGM",list_of_param.at(3).toDouble());
@@ -182,6 +191,55 @@ void read::NMEA_reading(QStringList list_of_param) {
         data_info.updateValue("N",list_of_param.at(6));
         data_info.updateValue("SoGK",list_of_param.at(7).toDouble());
         data_info.updateValue("K",list_of_param.at(8));
+    }
+    else if(syntax == "GST"){
+        Checksum_reading_Double(list_of_param[8],"AltErr");
+        QTime timestampnotDouble = QTime::fromString(list_of_param.at(1), "hhmmss.zzz");
+        data_info.updateValue("Timestamp",static_cast<double>(timestampnotDouble.msecsSinceStartOfDay()));
+        data_info.updateValue("EHPE",list_of_param.at(2).toDouble());
+        data_info.updateValue("SemiMajor",list_of_param.at(3).toDouble());
+        data_info.updateValue("SemiMinor",list_of_param.at(4).toDouble());
+        data_info.updateValue("Angle",list_of_param.at(5).toDouble());
+        data_info.updateValue("LatErr",list_of_param.at(6).toDouble());
+        data_info.updateValue("LonErr",list_of_param.at(7).toDouble());
+    }
+    else if(syntax == "GBS"){
+        Checksum_reading_STR(list_of_param[8],"");
+        QTime timestampnotDouble = QTime::fromString(list_of_param.at(1), "hhmmss.zzz");
+        data_info.updateValue("Timestamp",static_cast<double>(timestampnotDouble.msecsSinceStartOfDay()));
+        data_info.updateValue("LatErr",list_of_param.at(2).toDouble());
+        data_info.updateValue("LonErr",list_of_param.at(3).toDouble());
+        data_info.updateValue("AltErr",list_of_param.at(4).toDouble());
+        data_info.updateValue("SatPRN",list_of_param.at(5).toDouble());
+        data_info.updateValue("Res",list_of_param.at(7));
+        // Field #5 'st.Prob' is empty (not supported) in accordance with
+        // en.DM00398983 (for NMEA 0183 Rev 3.1 (Default)).
+    }
+    else if(syntax == "GNS"){
+        Checksum_reading_STR(list_of_param[13],"");
+        QTime timestampnotDouble = QTime::fromString(list_of_param.at(1), "hhmmss.zzz");
+        data_info.updateValue("Timestamp",static_cast<double>(timestampnotDouble.msecsSinceStartOfDay()));
+        Lat_Log("Lat",list_of_param[2].toDouble());
+        data_info.updateValue("NS", list_of_param.at(3));
+        Lat_Log("Long",list_of_param[4].toDouble());
+        data_info.updateValue("EW", list_of_param.at(5));
+        data_info.updateValue("ModeIndicator", list_of_param.at(6));
+        data_info.updateValue("Sats",list_of_param.at(7).toDouble());
+        data_info.updateValue("HDOP",list_of_param.at(8).toDouble());
+        data_info.updateValue("Alt",list_of_param.at(9).toDouble());
+        data_info.updateValue("GeoSep",list_of_param[9].toDouble());
+        // Fields #10 & #11 ('st.DGNSSAge' & 'st.DGNSSRef') are empty (not supported) in accordance with
+        // en.DM00398983.
+    }
+    else if(syntax == "DTM"){
+        Checksum_reading_STR(list_of_param[8],"ReferenceDatumCode");
+        data_info.updateValue("LocalDatumCode", list_of_param.at(1));
+        data_info.updateValue("LocalDatumCodeID",list_of_param.at(2).toDouble());
+        data_info.updateValue("LatOffset",list_of_param.at(2).toDouble());
+        data_info.updateValue("NS", list_of_param.at(1));
+        data_info.updateValue("LongOffset",list_of_param.at(2).toDouble());
+        data_info.updateValue("EW", list_of_param.at(5));
+        data_info.updateValue("AltOffset",list_of_param.at(2).toDouble());
     }
     else{
         no_new_data = true;
@@ -224,7 +282,7 @@ void read::PSTM_reading(QStringList list_of_param) {
     else if (syntax == "PV") {
         //qDebug() << list_of_param;
 
-        Checksum_reading(list_of_param.at(22),"VCovV");
+        Checksum_reading_Double(list_of_param.at(22),"VCovV");
         QTime timestampnotDouble = QTime::fromString(list_of_param.at(1), "hhmmss.zzz");
         data_info.updateValue("Timestamp",static_cast<double>(timestampnotDouble.msecsSinceStartOfDay()));
 
@@ -254,6 +312,25 @@ void read::PSTM_reading(QStringList list_of_param) {
         data_info.updateValue("VCovNV", list_of_param.at(19).toDouble());
         data_info.updateValue("VCovE", list_of_param.at(20).toDouble());
         data_info.updateValue("VCovEV", list_of_param.at(21).toDouble());
+    }
+    else if(syntax=="PVRAW"){
+        Checksum_reading_Double(list_of_param.at(16),"VCovV");
+        QTime timestampnotDouble = QTime::fromString(list_of_param.at(1), "hhmmss.zzz");
+        data_info.updateValue("Timestamp",static_cast<double>(timestampnotDouble.msecsSinceStartOfDay()));
+        Lat_Log("Lat",list_of_param[2].toDouble());
+        data_info.updateValue("NS", list_of_param.at(3));
+        Lat_Log("Long",list_of_param[4].toDouble());
+        data_info.updateValue("EW", list_of_param.at(5));
+        data_info.updateValue("GPSQual",list_of_param.at(6).toDouble());
+        data_info.updateValue("Sats",list_of_param.at(7).toDouble());
+        data_info.updateValue("HDOP",list_of_param.at(8).toDouble());
+        data_info.updateValue("Alt",list_of_param.at(9).toDouble());
+        data_info.updateValue("AltVal", list_of_param.at(10));
+        data_info.updateValue("GeoSep",list_of_param[11].toDouble());
+        data_info.updateValue("GeoVal", list_of_param.at(12));
+        data_info.updateValue("VelN", list_of_param.at(13).toDouble());
+        data_info.updateValue("VelE", list_of_param.at(14).toDouble());
+        data_info.updateValue("VelV", list_of_param.at(15).toDouble());
     }
     else{
         no_new_data = true;
