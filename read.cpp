@@ -13,7 +13,8 @@ bool no_new_data=true;
 int last_read_line = -1;
 QString path_to_parcing_file;
 bool change_time_new_file = true;
-QDateTime clock_time;
+QTime clock_time;
+QTime curr_update_time;
 void read::updateParcingFile(QString fileName){
     path_to_parcing_file = fileName;
     last_read_line = -1;
@@ -30,19 +31,38 @@ void read::file_reading(){
     // Открываем файл
     QFile file(path_to_parcing_file);
     //qDebug()<<path_to_parcing_file;
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
+    // if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    // {
+    //     qDebug() << "Не удалось открыть файл!";
+    //     return;
+    // }
+
+    // QTextStream in(&file);
+    QStringList lines;
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QTextStream in(&file);
+        while (!in.atEnd()) {
+            lines.append(in.readLine());
+        }
+        file.close();
+    }else{
         qDebug() << "Не удалось открыть файл!";
         return;
     }
-
-    QTextStream in(&file);
-
     no_new_data=true;
     int counter = 0;
+    if(lines.length()==last_read_line+1 && (curr_update_time.msecsTo(clock_time) >= 5000)){
+        if(curr_update_time.msecsTo(clock_time) >= 10000){
+        last_read_line++;
+        }
+        if (mainWindow) {
+            qDebug() << "entered";
+            mainWindow->fill_the_table(false);  // Теперь мы можем вызвать fill_the_table()
+        }
+    }
     // Считываем строки файла, пока файл не закончится или кнопка не нажата
-    while((!in.atEnd()) && (!MainWindow::button_is_pressed) &&(no_new_data)) {
-        QString string = in.readLine();
+    while((lines.length()>counter) && (!MainWindow::button_is_pressed)) {
+        QString string = lines[counter];
         if (counter<=last_read_line){
             counter++;
             continue;
@@ -74,8 +94,11 @@ void read::file_reading(){
                     clock_time = QTime(hours, minutes, seconds, milliseconds);
                     qDebug()<<clock_time.toString();
                     change_time_new_file = false;
+                    last_read_line--;
                 } else{
                     if(QTime(hours, minutes, seconds, milliseconds)<=clock_time){
+                        curr_update_time = QTime(hours, minutes, seconds, milliseconds);
+                        qDebug() << "зашел в сообщение с временем"<<curr_update_time.toString()<<"в "<<clock_time.toString();
                         if (parts[1].contains(",") && parts[1].startsWith("$")) {
                             if (parts[1].startsWith("$PSTM")) {
                                 // Передаем строку в метод для обработки данных
@@ -86,17 +109,21 @@ void read::file_reading(){
                                 NMEA_reading(parts[1].split(","));
                             }
                         }
-                    } else{
+                    }
+                    else{
+                        qDebug() << "noo"<<curr_update_time.toString()<<"в "<<clock_time.toString();
                         last_read_line--;
-                        counter--;
                     }
                 }
-
+                if (mainWindow) {
+                    qDebug() << "entered";
+                    mainWindow->fill_the_table(false);  // Теперь мы можем вызвать fill_the_table()
+                }
             }
         }
     }
-    file.close();
 }
+
 void read::Lat_Log(std::string key, double Coord){
     int degrees = static_cast<int>(Coord / 100);
     double minutes = Coord - (degrees * 100);
@@ -241,15 +268,44 @@ void read::NMEA_reading(QStringList list_of_param) {
         data_info.updateValue("EW", list_of_param.at(5));
         data_info.updateValue("AltOffset",list_of_param.at(2).toDouble());
     }
+    else if(syntax == "GSA"){
+        // st.Mode = cmd_data_string_array[0];
+        // st.CurrentMode = cmd_data_double_array[1];
+        // st.SatPRN1 = cmd_data_double_array[2];
+        // st.SatPRN2 = cmd_data_double_array[3];
+        // st.SatPRN3 = cmd_data_double_array[4];
+        // st.SatPRN4 = cmd_data_double_array[5];
+        // st.SatPRN5 = cmd_data_double_array[6];
+        // st.SatPRN6 = cmd_data_double_array[7];
+        // st.SatPRN7 = cmd_data_double_array[8];
+        // st.SatPRN8 = cmd_data_double_array[9];
+        // st.SatPRN9 = cmd_data_double_array[10];
+        // st.SatPRN10 = cmd_data_double_array[11];
+        // st.SatPRN11 = cmd_data_double_array[12];
+        // st.SatPRN12 = cmd_data_double_array[13];
+        // st.PDOP = cmd_data_double_array[14];
+        // st.HDOP = cmd_data_double_array[15];
+
+        // int starPos = cmd_data_string_array[16].indexOf("*");
+        // int crlfPos = cmd_data_string_array[16].indexOf("\r\n");
+        // if (starPos != -1 && crlfPos != -1) {
+        //     st.Checksum = cmd_data_string_array[16].mid(starPos + 1, crlfPos - starPos - 1);
+
+        //     QString numberStr = cmd_data_string_array[16].left(starPos);
+        //     bool ok;
+        //     double number = numberStr.toDouble(&ok);
+        //     st.VDOP = number;
+        // }
+    }
     else{
         no_new_data = true;
         return;
     }
-    qDebug() << "Данные добавлены в data_info";
-    if (mainWindow) {
-        qDebug() << "entered";
-        mainWindow->fill_the_table(false);  // Теперь мы можем вызвать fill_the_table()
-    }
+    qDebug() << "new Данные добавлены в data_info";
+    // if (mainWindow) {
+    //     qDebug() << "entered";
+    //     mainWindow->fill_the_table(false);  // Теперь мы можем вызвать fill_the_table()
+    // }
 }
 // Метод для обработки команды PSTM
 void read::PSTM_reading(QStringList list_of_param) {
@@ -336,10 +392,10 @@ void read::PSTM_reading(QStringList list_of_param) {
         no_new_data = true;
         return;
     }
-    qDebug() << "Данные добавлены в data_info";
-    if (mainWindow) {
-        qDebug() << "entered";
-        mainWindow->fill_the_table(false);  // Теперь мы можем вызвать fill_the_table()
-    }
+    qDebug() << "new Данные добавлены в data_info";
+    // if (mainWindow) {
+    //     qDebug() << "entered";
+    //     mainWindow->fill_the_table(false);  // Теперь мы можем вызвать fill_the_table()
+    // }
 }
 

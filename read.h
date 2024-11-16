@@ -14,6 +14,29 @@
 
 
 class MainWindow;
+struct Sputnik{
+    int id;
+    bool Status=false;
+    int Azimut=0;
+    int Elev = 0;
+    double HDOP = 0.0;
+    double PDOP = 0.0;
+    double VDOP = 0.0;
+    double SatX = 0.0;
+    double SatY = 0.0;
+    double SatZ = 0.0;
+    double VelX = 0.0;
+    double VelY = 0.0;
+    double VelZ = 0.0;
+
+};
+struct Sputniks{
+    int nb_sputnik;
+    Sputnik tab[93];
+};
+
+extern QTime curr_update_time;
+
 struct ResultStructure {
     double gps_time = 0.0;
     double Timestamp = 0.0;
@@ -89,14 +112,12 @@ struct ResultStructure {
     double AltOffset;
     QString ReferenceDatumCode;
 
-    std::unordered_map<std::string, QDateTime> lastUpdated;
+    std::unordered_map<std::string, QTime> lastUpdated;
 
     using ValueType = std::variant<QString, double,QVector<double>,QDateTime,QVector<QVector<double>>>;
 
     // Обновитель
     std::unordered_map<std::string, std::function<void(ValueType)>> updater;
-
-
 
     ResultStructure() {
         // Initialize the updater map with lambda functions for each member
@@ -184,7 +205,7 @@ struct ResultStructure {
             //qDebug() << "QString value:" << strValue;
             if (strValue=="inf" &&lastUpdated[key].toString()=="") {
                 qDebug() << "QString value:" << strValue;
-                lastUpdated[key] = QDateTime::currentDateTime().addSecs(-10);
+                lastUpdated[key] = curr_update_time.addSecs(-10);
                 qDebug() << "Updated lastUpdated[" << QString::fromStdString(key) << "] to:" << lastUpdated[key].toString();
                 return;
             }else if(strValue=="inf"){
@@ -197,7 +218,7 @@ struct ResultStructure {
             //qDebug() << "Double value:" << dblValue;
             if (dblValue == INFINITY&&lastUpdated[key].toString()=="") {
                 qDebug() << "Double value:" << dblValue;
-                lastUpdated[key] = QDateTime::currentDateTime().addSecs(-10);
+                lastUpdated[key] = curr_update_time.addSecs(-10);
                 qDebug() << "Updated lastUpdated[" << QString::fromStdString(key) << "] to:" << lastUpdated[key].toString();
                 return;
             }else if(dblValue == INFINITY){
@@ -208,19 +229,25 @@ struct ResultStructure {
             }
         }
         if (it != updater.end()) {
+            if(key=="Alt"){
+                qDebug()<<"alt"<<lastUpdated[key].toString();
+            }
             it->second(value);  // Update the member
-            lastUpdated[key] = QDateTime::currentDateTime();  // Update timestamp
+            lastUpdated[key] = curr_update_time;  // Update timestamp
+            if(key=="Alt"){
+                qDebug()<<"alt"<<lastUpdated[key].toString();
+            }
         } else {
             std::cerr << "Key not found: " << key << "\n";
         }
     }
 
-    QDateTime getUpdateTime(const std::string& key) const {
+    QTime getUpdateTime(const std::string& key) const {
         auto it = lastUpdated.find(key);
         if (it != lastUpdated.end()) {
             return it->second;
         } else {
-            return QDateTime(); // Returns an invalid QDateTime if key is not found
+            return QTime(); // Returns an invalid QDateTime if key is not found
         }
     }
 
@@ -247,6 +274,7 @@ public:
     QTime clock_time;
     // Вектор для хранения всех данных
     ResultStructure data_info;
+    Sputniks satellites;
     // Реализация обязательных методов
     QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override {
         return QModelIndex(); // Пустая реализация

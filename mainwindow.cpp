@@ -121,8 +121,8 @@ void MainWindow::updateTable() {
     }
 }
 QColor MainWindow::updateColor(const QString key,ResultStructure parced_data){
-    QDateTime curr_time = QDateTime::currentDateTime();
-    QDateTime last_update_time = parced_data.getUpdateTime(key.toStdString());
+    QTime curr_time = re->clock_time;
+    QTime last_update_time = parced_data.getUpdateTime(key.toStdString());
     qDebug()<<key<<last_update_time.msecsTo(curr_time);
     if (last_update_time.msecsTo(curr_time) <= 5000) {
         return Qt::green;
