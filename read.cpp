@@ -98,8 +98,8 @@ void read::file_reading(){
     file.close();
 }
 void read::Lat_Log(std::string key, double Coord){
-    int degrees = static_cast<int>(Coord / 100);  // Get the degrees
-    double minutes = Coord - (degrees * 100);     // Get the minutes
+    int degrees = static_cast<int>(Coord / 100);
+    double minutes = Coord - (degrees * 100);
 
     data_info.updateValue(key,degrees + (minutes / 60.0));
 }
