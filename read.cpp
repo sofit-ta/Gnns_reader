@@ -9,6 +9,7 @@ read::read(QObject *parent, MainWindow *mainWindow)
     : QAbstractItemModel(parent),mainWindow(mainWindow) {}
 
 ResultStructure data_info;
+Sputniks satellites;
 bool no_new_data=true;
 int last_read_line = -1;
 QString path_to_parcing_file;
@@ -130,14 +131,17 @@ void read::Lat_Log(std::string key, double Coord){
 
     data_info.updateValue(key,degrees + (minutes / 60.0));
 }
-void read::Checksum_reading_STR(QString str,std::string key){
+QString read::Checksum_reading_STR(QString str,std::string key){
     int starPos = str.indexOf("*");
     int crlfPos = str.indexOf("\r\n");
     if (starPos != -1 && crlfPos != -1) {
         data_info.updateValue("Checksum",str.mid(starPos + 1, crlfPos - starPos - 1));
         if(key!=""){
-            data_info.updateValue(key, str.left(starPos));}
+            data_info.updateValue(key, str.left(starPos));
+        }
+        return str.left(starPos);
     }
+    return "";
 }
 void read::Checksum_reading_Double(QString str, std::string key){
     int starPos = str.indexOf("*");
@@ -269,33 +273,35 @@ void read::NMEA_reading(QStringList list_of_param) {
         data_info.updateValue("AltOffset",list_of_param.at(2).toDouble());
     }
     else if(syntax == "GSA"){
-        // st.Mode = cmd_data_string_array[0];
-        // st.CurrentMode = cmd_data_double_array[1];
-        // st.SatPRN1 = cmd_data_double_array[2];
-        // st.SatPRN2 = cmd_data_double_array[3];
-        // st.SatPRN3 = cmd_data_double_array[4];
-        // st.SatPRN4 = cmd_data_double_array[5];
-        // st.SatPRN5 = cmd_data_double_array[6];
-        // st.SatPRN6 = cmd_data_double_array[7];
-        // st.SatPRN7 = cmd_data_double_array[8];
-        // st.SatPRN8 = cmd_data_double_array[9];
-        // st.SatPRN9 = cmd_data_double_array[10];
-        // st.SatPRN10 = cmd_data_double_array[11];
-        // st.SatPRN11 = cmd_data_double_array[12];
-        // st.SatPRN12 = cmd_data_double_array[13];
-        // st.PDOP = cmd_data_double_array[14];
-        // st.HDOP = cmd_data_double_array[15];
+        QString vdop = Checksum_reading_STR(list_of_param.at(17),"");
+        data_info.updateValue("ModeIndicator", list_of_param.at(1));
+        data_info.updateValue("CurrentMode", list_of_param.at(2).toDouble());
+        QList<int> id_of_sputniks;
+        for(int position = 3; position < 15; ++position){
+            id_of_sputniks.append(list_of_param.at(position).toInt());
+        }
+        for (double id : id_of_sputniks) {
+            satellites.updateSputnik(id,"PDOP",list_of_param.at(15).toDouble());
+            satellites.updateSputnik(id,"HDOP",list_of_param.at(16).toDouble());
+            satellites.updateSputnik(id,"VDOP",vdop.toDouble());
+        }
+    }
+    else if(syntax == "GSV"){
+        QString SatxCN0 = Checksum_reading_STR(list_of_param.at(19),"");
+        data_info.updateValue("GSVAmount",list_of_param.at(1).toDouble());
+        data_info.updateValue("GSVNumber",list_of_param.at(2).toDouble());
+        data_info.updateValue("TotSats",list_of_param.at(3).toDouble());
+        for (int position = 4; position < 19; position=position+4) {
+            int id = list_of_param.at(position).toInt();
+            satellites.updateSputnik(id,"Elev",list_of_param.at(position+1).toInt());
+            satellites.updateSputnik(id,"Azimut",list_of_param.at(position+2).toInt());
+            if(position+3==19){
+                satellites.updateSputnik(id,"CN0",SatxCN0.toInt());
+            }else{
+                satellites.updateSputnik(id,"CN0",list_of_param.at(position+3).toInt());
+            }
 
-        // int starPos = cmd_data_string_array[16].indexOf("*");
-        // int crlfPos = cmd_data_string_array[16].indexOf("\r\n");
-        // if (starPos != -1 && crlfPos != -1) {
-        //     st.Checksum = cmd_data_string_array[16].mid(starPos + 1, crlfPos - starPos - 1);
-
-        //     QString numberStr = cmd_data_string_array[16].left(starPos);
-        //     bool ok;
-        //     double number = numberStr.toDouble(&ok);
-        //     st.VDOP = number;
-        // }
+        }
     }
     else{
         no_new_data = true;
@@ -387,6 +393,41 @@ void read::PSTM_reading(QStringList list_of_param) {
         data_info.updateValue("VelN", list_of_param.at(13).toDouble());
         data_info.updateValue("VelE", list_of_param.at(14).toDouble());
         data_info.updateValue("VelV", list_of_param.at(15).toDouble());
+    }
+    else if(syntax == "TS"){
+        QString PredTD = Checksum_reading_STR(list_of_param.at(23),"");
+        int id = list_of_param.at(2).toInt();
+        satellites.updateSputnik(id,"DSPDat",list_of_param.at(1).toInt());
+        satellites.updateSputnik(id,"PsR",list_of_param.at(3).toDouble());
+        satellites.updateSputnik(id,"Freq",list_of_param.at(4).toDouble());
+        satellites.updateSputnik(id,"PLF",list_of_param.at(5).toInt());
+        satellites.updateSputnik(id,"CN0",list_of_param.at(6).toInt());
+        satellites.updateSputnik(id,"TTim",list_of_param.at(7).toDouble());
+        satellites.updateSputnik(id,"SatDat",list_of_param.at(8).toInt());
+        satellites.updateSputnik(id,"SatX",list_of_param.at(9).toDouble());
+        satellites.updateSputnik(id,"SatY",list_of_param.at(10).toDouble());
+        satellites.updateSputnik(id,"SatZ",list_of_param.at(11).toDouble());
+        satellites.updateSputnik(id,"VelX",list_of_param.at(12).toDouble());
+        satellites.updateSputnik(id,"VelY",list_of_param.at(13).toDouble());
+        satellites.updateSputnik(id,"VelZ",list_of_param.at(14).toDouble());
+        satellites.updateSputnik(id,"SRC",list_of_param.at(15).toDouble());
+        satellites.updateSputnik(id,"AC",list_of_param.at(16).toDouble());
+        satellites.updateSputnik(id,"DifDat",list_of_param.at(17).toInt());
+        satellites.updateSputnik(id,"DRC",list_of_param.at(18).toDouble());
+        satellites.updateSputnik(id,"DRRC",list_of_param.at(19).toDouble());
+        satellites.updateSputnik(id,"PredAvl",list_of_param.at(20).toInt());
+        satellites.updateSputnik(id,"PredAge",list_of_param.at(21).toInt());
+        satellites.updateSputnik(id,"PredEph",list_of_param.at(22).toInt());
+        satellites.updateSputnik(id,"PredTD",PredTD.toInt());
+    }
+    else if(syntax== "SAT"){
+        QString Satz = Checksum_reading_STR(list_of_param.at(6),"");
+        int id = list_of_param.at(1).toInt();
+        satellites.updateSputnik(id,"PsR",list_of_param.at(2).toDouble());
+        satellites.updateSputnik(id,"Freq",list_of_param.at(3).toDouble());
+        satellites.updateSputnik(id,"SatX",list_of_param.at(4).toDouble());
+        satellites.updateSputnik(id,"SatY",list_of_param.at(5).toDouble());
+        satellites.updateSputnik(id,"SatZ",Satz.toDouble());
     }
     else{
         no_new_data = true;

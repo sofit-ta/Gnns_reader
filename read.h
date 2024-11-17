@@ -16,9 +16,11 @@
 class MainWindow;
 struct Sputnik{
     int id;
+    QTime last_updated;
     bool Status=false;
     int Azimut=0;
     int Elev = 0;
+    int CN0 = 0.0;
     double HDOP = 0.0;
     double PDOP = 0.0;
     double VDOP = 0.0;
@@ -29,10 +31,81 @@ struct Sputnik{
     double VelY = 0.0;
     double VelZ = 0.0;
 
+    int DSPDat = 0;
+    double PsR = 0.0;
+    double Freq = 0.0;
+    int PLF = 0;
+    double TTim = 0.0;
+    int SatDat = 0;
+    double SRC = 0.0;
+    double AC = 0.0;
+    int DifDat = 0;
+    double DRC = 0.0;
+    double DRRC = 0.0;
+    int PredAvl = 0;
+    int PredAge = 0;
+    int PredEph = 0;
+    int PredTD = 0;
+
+    using ValueType = std::variant<int, bool, double, QTime>;
+
+    // Карта для обновления значений по ключу
+    std::unordered_map<std::string, std::function<void(ValueType)>> updater;
+
+    Sputnik() {
+        updater["id"] = [this](ValueType value) { id = std::get<int>(value); };
+        updater["Status"] = [this](ValueType value) { Status = std::get<bool>(value); };
+        updater["Azimut"] = [this](ValueType value) { Azimut = std::get<int>(value); };
+        updater["Elev"] = [this](ValueType value) { Elev = std::get<int>(value); };
+        updater["CN0"] = [this](ValueType value) { CN0 = std::get<int>(value); };
+        updater["HDOP"] = [this](ValueType value) { HDOP = std::get<double>(value); };
+        updater["PDOP"] = [this](ValueType value) { PDOP = std::get<double>(value); };
+        updater["VDOP"] = [this](ValueType value) { VDOP = std::get<double>(value); };
+        updater["SatX"] = [this](ValueType value) { SatX = std::get<double>(value); };
+        updater["SatY"] = [this](ValueType value) { SatY = std::get<double>(value); };
+        updater["SatZ"] = [this](ValueType value) { SatZ = std::get<double>(value); };
+        updater["VelX"] = [this](ValueType value) { VelX = std::get<double>(value); };
+        updater["VelY"] = [this](ValueType value) { VelY = std::get<double>(value); };
+        updater["VelZ"] = [this](ValueType value) { VelZ = std::get<double>(value); };
+        updater["last_updated"] = [this](ValueType value) { last_updated = std::get<QTime>(value); };
+
+        updater["DSPDat"] = [this](ValueType value) { DSPDat = std::get<int>(value); };
+        updater["PsR"] = [this](ValueType value) { PsR = std::get<double>(value); };
+        updater["Freq"] = [this](ValueType value) { Freq = std::get<double>(value); };
+        updater["PLF"] = [this](ValueType value) { PLF = std::get<int>(value); };
+        updater["TTim"] = [this](ValueType value) { TTim = std::get<double>(value); };
+        updater["SatDat"] = [this](ValueType value) { SatDat = std::get<int>(value); };
+        updater["SRC"] = [this](ValueType value) { SRC = std::get<double>(value); };
+        updater["AC"] = [this](ValueType value) { AC = std::get<double>(value); };
+        updater["DifDat"] = [this](ValueType value) { DifDat = std::get<int>(value); };
+        updater["DRC"] = [this](ValueType value) { DRC = std::get<double>(value); };
+        updater["DRRC"] = [this](ValueType value) { DRRC = std::get<double>(value); };
+        updater["PredAvl"] = [this](ValueType value) { PredAvl = std::get<int>(value); };
+        updater["PredAge"] = [this](ValueType value) { PredAge = std::get<int>(value); };
+        updater["PredEph"] = [this](ValueType value) { PredEph = std::get<int>(value); };
+        updater["PredTD"] = [this](ValueType value) { PredTD = std::get<int>(value); };
+    }
+
+    void updateValue(const std::string& key, ValueType value) {
+        auto it = updater.find(key);
+        if (it != updater.end()) {
+            it->second(value);
+        } else {
+            std::cerr << "Key not found: " << key << "\n";
+        }
+    }
 };
 struct Sputniks{
     int nb_sputnik;
     Sputnik tab[93];
+
+    void updateSputnik(int index, const std::string& key, Sputnik::ValueType value) {
+        if (index >= 0 && index < 93) {
+            tab[index].updateValue(key, value);
+        } else {
+            std::cerr << "Sputnik index out of range: " << index << "\n";
+        }
+    }
 };
 
 extern QTime curr_update_time;
@@ -112,9 +185,14 @@ struct ResultStructure {
     double AltOffset;
     QString ReferenceDatumCode;
 
+    double CurrentMode;
+
+    int GSVAmount;
+    int GSVNumber;
+
     std::unordered_map<std::string, QTime> lastUpdated;
 
-    using ValueType = std::variant<QString, double,QVector<double>,QDateTime,QVector<QVector<double>>>;
+    using ValueType = std::variant<QString, double,QVector<double>,QDateTime,QVector<QVector<double>>,int>;
 
     // Обновитель
     std::unordered_map<std::string, std::function<void(ValueType)>> updater;
@@ -195,6 +273,10 @@ struct ResultStructure {
         updater["LongOffset"] = [this](ValueType value) { LongOffset = std::get<double>(value); };
         updater["AltOffset"] = [this](ValueType value) { AltOffset = std::get<double>(value); };
         updater["ReferenceDatumCode"] = [this](ValueType value) { ReferenceDatumCode = std::get<QString>(value); };
+        updater["CurrentMode"] = [this](ValueType value) { CurrentMode = std::get<double>(value); };
+
+        updater["GSVAmount"] = [this](ValueType value) { GSVAmount = std::get<int>(value); };
+        updater["GSVNumber"] = [this](ValueType value) { GSVNumber = std::get<int>(value); };
     }
 
     void updateValue(const std::string& key, ValueType value) {
@@ -300,7 +382,7 @@ private:
     void PSTM_reading(QStringList list_of_param);
     void NMEA_reading(QStringList list_of_param);
     void Lat_Log(std::string key, double Coord);
-    void Checksum_reading_STR(QString str,std::string key);
+    QString Checksum_reading_STR(QString str,std::string key);
     void Checksum_reading_Double(QString str,std::string key);
     MainWindow *mainWindow;
     QString path_to_parcing_file;
