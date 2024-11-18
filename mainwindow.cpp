@@ -4,6 +4,7 @@
 #include "read.h"
 #include <QTimer>
 #include <QFileDialog>
+#include "qcustomplot.h"
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -50,6 +51,24 @@ MainWindow::MainWindow(QWidget *parent)
     connect(clocks, &QTimer::timeout, this, &MainWindow::updateClock);
 
 
+    objectSatPlot = new QCustomPlot(ui->objectLocation);
+    objectSatPlot->setParent(ui->objectLocation); // Связываем с виджетом
+    objectSatPlot->resize(ui->objectLocation->size()); // Устанавливаем размер
+
+    // Пример: Настройка осей и начального графика
+    objectSatPlot->xAxis->setLabel("X");
+    objectSatPlot->yAxis->setLabel("Y");
+    double xMin = -100;  // Например, минимальное значение по оси X
+    double xMax = 100;   // Максимальное значение по оси X
+    double yMin = -100;  // Минимальное значение по оси Y
+    double yMax = 100;   // Максимальное значение по оси Y
+
+    objectSatPlot->xAxis->setRange(xMin, xMax); // Устанавливаем диапазон для оси X
+    objectSatPlot->yAxis->setRange(yMin, yMax); // Устанавливаем диапазон для оси Y
+    objectSatPlot->xAxis->grid()->setSubGridVisible(true);  // Включаем под-сетки
+    objectSatPlot->yAxis->grid()->setSubGridVisible(true);  // Включаем под-сетки
+
+    objectSatPlot->replot();
 }
 
 MainWindow::~MainWindow()
@@ -58,7 +77,75 @@ MainWindow::~MainWindow()
     delete re;
 }
 
+QColor MainWindow::chooseSatColor(Sputnik satellite){
+    if(satellite.PDOP==INFINITY){
+        return QColor(qRgb(194,184,180));
+    }
+    return QColor(qRgb(142,242,141));
+}
 
+void MainWindow::plotSatelliteData() {
+    const Sputniks& sats = re->satellites;
+    objectSatPlot->clearPlottables(); // Очищаем старые данные
+    objectSatPlot->clearItems(); // Очищаем старые элементы (текст и эллипсы)
+
+    QPair<double, double> objectPos = {0.0, 0.0}; // Точка объекта
+
+    // Добавляем точку объекта
+    QCPGraph* objectPoint = objectSatPlot->addGraph();
+    objectPoint->setLineStyle(QCPGraph::lsNone);
+    objectPoint->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, Qt::blue, 10));
+    objectPoint->addData(objectPos.first, objectPos.second);
+
+    // Добавляем точки спутников и их номера
+    // QCPGraph* satellitePoints = objectSatPlot->addGraph();
+    // satellitePoints->setLineStyle(QCPGraph::lsNone);
+    // QCPScatterStyle satelliteStyle;
+    // satelliteStyle.setShape(QCPScatterStyle::ssDisc);  // Пустой центр
+    // satelliteStyle.setPen(QPen(Qt::green, 2));           // Ободок зеленого цвета, толщиной 2px
+    // satelliteStyle.setSize(20);                          // Увеличиваем размер точек
+    // satellitePoints->setScatterStyle(satelliteStyle);
+    // satellitePoints->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, Qt::gray, 20));
+    double xMin = 0, xMax = 0, yMin = 0, yMax = 0;
+
+    for (int id = 1; id < 93; id++) {
+        if(sats.tab[id].Status){
+            // Добавляем данные спутников
+            //satellitePoints->addData(sats.tab[id].SatX,sats.tab[id].SatY);
+            QColor textcolor = chooseSatColor(sats.tab[id]);
+            // Добавляем метку с номером спутника
+            QCPItemText* textLabel = new QCPItemText(objectSatPlot);
+            textLabel->setPositionAlignment(Qt::AlignCenter);  // Выравнивание текста по центру
+            textLabel->position->setCoords(sats.tab[id].SatX,sats.tab[id].SatY);  // Позиция метки (координаты спутника)
+            if(id<10){
+                textLabel->setText("0"+QString::number(id));
+            }else{
+            textLabel->setText(QString::number(id));  // Текст метки (номер спутника)
+            }
+            textLabel->setFont(QFont("Arial", 14));  // Шрифт для текста
+            textLabel->setColor(Qt::black);  // Цвет текста
+            textLabel->setBrush(QBrush(textcolor));  //фон
+            textLabel->setPadding(QMargins(3, 3, 3, 3));  // Отступы вокруг текста (слева, сверху, справа, снизу)
+            xMin = qMin(xMin, sats.tab[id].SatX);
+            xMax = qMax(xMax, sats.tab[id].SatX);
+            yMin = qMin(yMin, sats.tab[id].SatY);
+            yMax = qMax(yMax, sats.tab[id].SatY);
+        }
+    }
+
+    // Устанавливаем диапазоны осей
+    double margin = 0.1; // 10% от максимального расстояния
+    double xRange = qMax(fabs(xMax), fabs(xMin));
+    double yRange = qMax(fabs(yMax), fabs(yMin));
+
+    objectSatPlot->xAxis->setRange(-xRange * (1 + margin), xRange * (1 + margin));
+    objectSatPlot->yAxis->setRange(-yRange * (1 + margin), yRange * (1 + margin));
+
+    objectSatPlot->xAxis->grid()->setSubGridVisible(true); // Включаем под-сетки
+    objectSatPlot->yAxis->grid()->setSubGridVisible(true); // Включаем под-сетки
+
+    objectSatPlot->replot(); // Обновляем график
+}
 
 void MainWindow::on_listView_clicked(const QModelIndex &index)
 {
@@ -123,7 +210,7 @@ void MainWindow::updateTable() {
 QColor MainWindow::updateColor(const QString key,ResultStructure parced_data){
     QTime curr_time = re->clock_time;
     QTime last_update_time = parced_data.getUpdateTime(key.toStdString());
-    qDebug()<<key<<last_update_time.msecsTo(curr_time);
+    //qDebug()<<key<<last_update_time.msecsTo(curr_time);
     if (last_update_time.msecsTo(curr_time) <= 5000) {
         return Qt::green;
     } else if (last_update_time.msecsTo(curr_time) <= 10000){
@@ -187,6 +274,11 @@ void MainWindow::fill_the_table(bool first_time) {
     // Подгоняем размер столбцов под текст
     ui->tableView->resizeColumnsToContents();
     qDebug() << "Таблица заполнена";
+    if (!first_time){
+        qDebug() << "graph заполнен";
+        plotSatelliteData();
+    }
+
 }
 
 void MainWindow::stopReadingData()

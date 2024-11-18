@@ -93,13 +93,13 @@ void read::file_reading(){
                 if(change_time_new_file){
                     qDebug()<<parts.at(0);
                     clock_time = QTime(hours, minutes, seconds, milliseconds);
-                    qDebug()<<clock_time.toString();
+                    //qDebug()<<clock_time.toString();
                     change_time_new_file = false;
                     last_read_line--;
                 } else{
                     if(QTime(hours, minutes, seconds, milliseconds)<=clock_time){
                         curr_update_time = QTime(hours, minutes, seconds, milliseconds);
-                        qDebug() << "зашел в сообщение с временем"<<curr_update_time.toString()<<"в "<<clock_time.toString();
+                        //qDebug() << "зашел в сообщение с временем"<<curr_update_time.toString()<<"в "<<clock_time.toString();
                         if (parts[1].contains(",") && parts[1].startsWith("$")) {
                             if (parts[1].startsWith("$PSTM")) {
                                 // Передаем строку в метод для обработки данных
@@ -112,16 +112,16 @@ void read::file_reading(){
                         }
                     }
                     else{
-                        qDebug() << "noo"<<curr_update_time.toString()<<"в "<<clock_time.toString();
+                        //qDebug() << "noo"<<curr_update_time.toString()<<"в "<<clock_time.toString();
                         last_read_line--;
                     }
                 }
-                if (mainWindow) {
-                    qDebug() << "entered";
-                    mainWindow->fill_the_table(false);  // Теперь мы можем вызвать fill_the_table()
-                }
             }
         }
+    }
+    if (mainWindow && (!no_new_data)) {
+        //qDebug() << "entered";
+        mainWindow->fill_the_table(false);  // Теперь мы можем вызвать fill_the_table()
     }
 }
 
@@ -280,10 +280,11 @@ void read::NMEA_reading(QStringList list_of_param) {
         for(int position = 3; position < 15; ++position){
             id_of_sputniks.append(list_of_param.at(position).toInt());
         }
-        for (double id : id_of_sputniks) {
+        for (int id : id_of_sputniks) {
             satellites.updateSputnik(id,"PDOP",list_of_param.at(15).toDouble());
             satellites.updateSputnik(id,"HDOP",list_of_param.at(16).toDouble());
             satellites.updateSputnik(id,"VDOP",vdop.toDouble());
+            qDebug()<<id<<satellites.tab[id].PDOP;
         }
     }
     else if(syntax == "GSV"){
@@ -407,6 +408,7 @@ void read::PSTM_reading(QStringList list_of_param) {
         satellites.updateSputnik(id,"SatX",list_of_param.at(9).toDouble());
         satellites.updateSputnik(id,"SatY",list_of_param.at(10).toDouble());
         satellites.updateSputnik(id,"SatZ",list_of_param.at(11).toDouble());
+        qDebug()<<id<<satellites.tab[id].SatX<<satellites.tab[id].SatY;
         satellites.updateSputnik(id,"VelX",list_of_param.at(12).toDouble());
         satellites.updateSputnik(id,"VelY",list_of_param.at(13).toDouble());
         satellites.updateSputnik(id,"VelZ",list_of_param.at(14).toDouble());

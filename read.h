@@ -21,9 +21,9 @@ struct Sputnik{
     int Azimut=0;
     int Elev = 0;
     int CN0 = 0.0;
-    double HDOP = 0.0;
-    double PDOP = 0.0;
-    double VDOP = 0.0;
+    double HDOP = INFINITY;
+    double PDOP = INFINITY;
+    double VDOP = INFINITY;
     double SatX = 0.0;
     double SatY = 0.0;
     double SatZ = 0.0;
@@ -90,6 +90,9 @@ struct Sputnik{
         auto it = updater.find(key);
         if (it != updater.end()) {
             it->second(value);
+            if(key=="SatX"||key=="SatY"||key=="SatZ"){
+                Status = true;
+            }
         } else {
             std::cerr << "Key not found: " << key << "\n";
         }
@@ -286,12 +289,12 @@ struct ResultStructure {
             QString strValue = std::get<QString>(value);
             //qDebug() << "QString value:" << strValue;
             if (strValue=="inf" &&lastUpdated[key].toString()=="") {
-                qDebug() << "QString value:" << strValue;
+                //qDebug() << "QString value:" << strValue;
                 lastUpdated[key] = curr_update_time.addSecs(-10);
-                qDebug() << "Updated lastUpdated[" << QString::fromStdString(key) << "] to:" << lastUpdated[key].toString();
+                //qDebug() << "Updated lastUpdated[" << QString::fromStdString(key) << "] to:" << lastUpdated[key].toString();
                 return;
             }else if(strValue=="inf"){
-                qDebug() << "Updated lastUpdated[" << QString::fromStdString(key) << "] to:" << lastUpdated[key].toString();
+                //qDebug() << "Updated lastUpdated[" << QString::fromStdString(key) << "] to:" << lastUpdated[key].toString();
                 return;
             }
         }
@@ -299,14 +302,14 @@ struct ResultStructure {
             double dblValue = std::get<double>(value);
             //qDebug() << "Double value:" << dblValue;
             if (dblValue == INFINITY&&lastUpdated[key].toString()=="") {
-                qDebug() << "Double value:" << dblValue;
+                //qDebug() << "Double value:" << dblValue;
                 lastUpdated[key] = curr_update_time.addSecs(-10);
-                qDebug() << "Updated lastUpdated[" << QString::fromStdString(key) << "] to:" << lastUpdated[key].toString();
+                //qDebug() << "Updated lastUpdated[" << QString::fromStdString(key) << "] to:" << lastUpdated[key].toString();
                 return;
             }else if(dblValue == INFINITY){
-                qDebug() << "Double value:" << dblValue;
+                //qDebug() << "Double value:" << dblValue;
                 lastUpdated[key] = lastUpdated[key].addSecs(-5);
-                qDebug() << "Updated lastUpdated[" << QString::fromStdString(key) << "] to:" << lastUpdated[key].toString();
+                //qDebug() << "Updated lastUpdated[" << QString::fromStdString(key) << "] to:" << lastUpdated[key].toString();
                 return;
             }
         }

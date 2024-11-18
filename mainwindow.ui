@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1049</width>
-    <height>789</height>
+    <width>1051</width>
+    <height>802</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -23,77 +23,81 @@
    <widget class="QGroupBox" name="groupBox">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>10</y>
-      <width>991</width>
-      <height>511</height>
+      <x>10</x>
+      <y>70</y>
+      <width>801</width>
+      <height>641</height>
      </rect>
     </property>
     <property name="title">
      <string/>
     </property>
-    <layout class="QGridLayout" name="gridLayout">
-     <item row="0" column="0">
-      <widget class="QTabWidget" name="tabWidget_2">
-       <property name="currentIndex">
-        <number>0</number>
+    <widget class="QTabWidget" name="tabWidget_2">
+     <property name="geometry">
+      <rect>
+       <x>15</x>
+       <y>9</y>
+       <width>771</width>
+       <height>621</height>
+      </rect>
+     </property>
+     <property name="currentIndex">
+      <number>1</number>
+     </property>
+     <widget class="QWidget" name="tab_3">
+      <attribute name="title">
+       <string>Наблюдаемые спутники</string>
+      </attribute>
+      <widget class="QGraphicsView" name="graphicsView">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>951</width>
+         <height>451</height>
+        </rect>
        </property>
-       <widget class="QWidget" name="tab_3">
-        <attribute name="title">
-         <string>Наблюдаемые спутники</string>
-        </attribute>
-        <widget class="QGraphicsView" name="graphicsView">
-         <property name="geometry">
-          <rect>
-           <x>0</x>
-           <y>0</y>
-           <width>951</width>
-           <height>451</height>
-          </rect>
-         </property>
-        </widget>
-       </widget>
-       <widget class="QWidget" name="tab_4">
-        <attribute name="title">
-         <string>Положение объекта</string>
-        </attribute>
-        <widget class="QGraphicsView" name="graphicsView_2">
-         <property name="geometry">
-          <rect>
-           <x>5</x>
-           <y>1</y>
-           <width>951</width>
-           <height>441</height>
-          </rect>
-         </property>
-        </widget>
-       </widget>
-       <widget class="QWidget" name="tab_5">
-        <attribute name="title">
-         <string>Выбранный спутник</string>
-        </attribute>
-        <widget class="QGraphicsView" name="graphicsView_3">
-         <property name="geometry">
-          <rect>
-           <x>0</x>
-           <y>10</y>
-           <width>951</width>
-           <height>441</height>
-          </rect>
-         </property>
-        </widget>
-       </widget>
       </widget>
-     </item>
-    </layout>
+     </widget>
+     <widget class="QWidget" name="tab_4">
+      <attribute name="title">
+       <string>Положение объекта</string>
+      </attribute>
+      <widget class="QWidget" name="objectLocation" native="true">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>10</y>
+         <width>751</width>
+         <height>571</height>
+        </rect>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="tab_5">
+      <attribute name="title">
+       <string>Выбранный спутник</string>
+      </attribute>
+      <widget class="QGraphicsView" name="graphicsView_3">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>10</y>
+         <width>951</width>
+         <height>441</height>
+        </rect>
+       </property>
+      </widget>
+     </widget>
+    </widget>
    </widget>
    <widget class="QGroupBox" name="groupBox_2">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>530</y>
-      <width>501</width>
-      <height>191</height>
+      <x>820</x>
+      <y>220</y>
+      <width>221</width>
+      <height>321</height>
      </rect>
     </property>
     <property name="font">
@@ -111,9 +115,9 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>30</y>
-       <width>481</width>
-       <height>171</height>
+       <y>20</y>
+       <width>201</width>
+       <height>291</height>
       </rect>
      </property>
      <property name="currentIndex">
@@ -144,9 +148,9 @@
    <widget class="QTableView" name="tableView">
     <property name="geometry">
      <rect>
-      <x>750</x>
-      <y>530</y>
-      <width>291</width>
+      <x>820</x>
+      <y>20</y>
+      <width>221</width>
       <height>181</height>
      </rect>
     </property>
@@ -172,8 +176,8 @@
    <widget class="QPushButton" name="pushButton_2">
     <property name="geometry">
      <rect>
-      <x>530</x>
-      <y>660</y>
+      <x>340</x>
+      <y>20</y>
       <width>81</width>
       <height>32</height>
      </rect>
@@ -185,8 +189,8 @@
    <widget class="QPushButton" name="pushButton">
     <property name="geometry">
      <rect>
-      <x>530</x>
-      <y>630</y>
+      <x>240</x>
+      <y>20</y>
       <width>81</width>
       <height>32</height>
      </rect>
@@ -198,8 +202,8 @@
    <widget class="QLabel" name="clock">
     <property name="geometry">
      <rect>
-      <x>540</x>
-      <y>560</y>
+      <x>20</x>
+      <y>10</y>
       <width>181</width>
       <height>41</height>
      </rect>
@@ -219,7 +223,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1049</width>
+     <width>1051</width>
      <height>37</height>
     </rect>
    </property>

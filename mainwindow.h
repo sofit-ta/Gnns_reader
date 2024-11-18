@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 
+#include "qcustomplot.h"
 #include "read.h"
 #include "satellite_window.h"
 #include <QMainWindow>
@@ -25,6 +26,7 @@ public:
     static bool button_is_pressed;
     void fill_the_table(bool first_time);
     void on_open_file_triggered();
+    void plotSatelliteData();
 
 private slots:
 
@@ -42,6 +44,7 @@ private slots:
     void updateTable(); // Добавляем слот для обновления таблицы
     QColor updateColor(const QString key, ResultStructure parced_data);
     void updateClock();
+    QColor chooseSatColor(Sputnik satellite);
 
 private:
     Ui::MainWindow *ui;
@@ -52,5 +55,6 @@ private:
     read *re;
     QTimer *clocks; // Объявляем указатель на QTimer
     QStringList list_names; // Добавляем list_names как член класса
+    QCustomPlot* objectSatPlot;
 };
 #endif // MAINWINDOW_H
