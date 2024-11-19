@@ -14,6 +14,8 @@
 
 
 class MainWindow;
+
+extern QTime curr_update_time;
 struct Sputnik{
     int id;
     QTime last_updated;
@@ -27,6 +29,9 @@ struct Sputnik{
     double SatX = 0.0;
     double SatY = 0.0;
     double SatZ = 0.0;
+    double SatXCalculated = INFINITY;
+    double SatYCalculated = INFINITY;
+    double SatZCalculated = INFINITY;
     double VelX = 0.0;
     double VelY = 0.0;
     double VelZ = 0.0;
@@ -90,6 +95,7 @@ struct Sputnik{
         auto it = updater.find(key);
         if (it != updater.end()) {
             it->second(value);
+
             if(key=="SatX"||key=="SatY"||key=="SatZ"){
                 Status = true;
             }
@@ -105,13 +111,13 @@ struct Sputniks{
     void updateSputnik(int index, const std::string& key, Sputnik::ValueType value) {
         if (index >= 0 && index < 93) {
             tab[index].updateValue(key, value);
+            tab[index].last_updated = curr_update_time;
         } else {
             std::cerr << "Sputnik index out of range: " << index << "\n";
         }
     }
 };
 
-extern QTime curr_update_time;
 
 struct ResultStructure {
     double gps_time = 0.0;
@@ -152,19 +158,17 @@ struct ResultStructure {
     QString DGPSAge = "";
     QString DGPSRef = "";
 
-    double Speed = 0.0;
-    double TrackGood = 0.0;
     QDateTime Date;
     double MagVar = 0.0;
     QString MagVarDir = "";
 
-    double TMGT = 0.0;
+    double TMGT = 0.0; //курс на истинный полюс в градусах
     QString T = "";
-    double TMGM = 0.0;
+    double TMGM = 0.0; //magnetic
     QString M = "";
-    double SoGN = 0.0;
+    double SoGN = 0.0; //knots
     QString N = "";
-    double SoGK = 0.0;
+    double SoGK = 0.0; //km per hour
     QString K = "";
     QString D = "";
 
@@ -242,7 +246,6 @@ struct ResultStructure {
         updater["DGPSAge"] = [this](ValueType value) { DGPSAge = std::get<QString>(value); };
         updater["DGPSRef"] = [this](ValueType value) { DGPSRef = std::get<QString>(value); };
 
-        updater["TrackGood"] = [this](ValueType value) { TrackGood = std::get<double>(value); };
         updater["Date"] = [this](ValueType value) { Date = std::get<QDateTime>(value); };
         updater["MagVar"] = [this](ValueType value) { MagVar = std::get<double>(value); };
         updater["MagVarDir"] = [this](ValueType value) { MagVarDir = std::get<QString>(value); };

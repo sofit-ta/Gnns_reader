@@ -27,6 +27,7 @@ public:
     void fill_the_table(bool first_time);
     void on_open_file_triggered();
     void plotSatelliteData();
+    void plotObject_SatelliteData();
 
 private slots:
 
@@ -47,6 +48,9 @@ private slots:
     QColor chooseSatColor(Sputnik satellite);
     void set_the_plot(QCustomPlot *plot);
     void show_selected_satellite(int id);
+    void reCalculateSatCords(int id,double deltaX,double deltaY);
+    void addRotatedRectangle(QCustomPlot *customPlot, double x, double y, double width, double height, double angleDegrees);
+    void addRotatedTriangle(QCustomPlot *customPlot, double centerX, double centerY, double base, double height, double angleDegrees);
 
 private:
     Ui::MainWindow *ui;

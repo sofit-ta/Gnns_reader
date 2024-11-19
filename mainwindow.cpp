@@ -183,6 +183,154 @@ void MainWindow::plotSatelliteData() {
 
     currSatPlot->replot(); // Обновляем график
 }
+void MainWindow::addRotatedRectangle(QCustomPlot *customPlot, double x, double y, double width, double height, double angleDegrees)
+{
+    // Углы прямоугольника относительно центра
+    QVector<QPointF> corners = {
+        QPointF(-width / 2, -height / 2), // Левый нижний угол
+        QPointF(width / 2, -height / 2),  // Правый нижний угол
+        QPointF(width / 2, height / 2),   // Правый верхний угол
+        QPointF(-width / 2, height / 2)  // Левый верхний угол
+    };
+
+    // Преобразуем угол из градусов в радианы
+    double angleRadians = angleDegrees * M_PI / 180.0;
+
+    // Матрица поворота: [cos(a) -sin(a); sin(a) cos(a)]
+    QTransform rotationMatrix;
+    rotationMatrix.rotate(angleDegrees);
+
+    // Применяем поворот и сдвигаем прямоугольник в нужное место
+    for (auto &corner : corners)
+    {
+        corner = rotationMatrix.map(corner); // Применяем поворот
+        corner += QPointF(x, y);            // Смещаем центр
+    }
+
+    // Соединяем углы линиями
+    for (int i = 0; i < 4; ++i)
+    {
+        QCPItemLine *line = new QCPItemLine(customPlot);
+        line->start->setCoords(corners[i].x(), corners[i].y());
+        line->end->setCoords(corners[(i + 1) % 4].x(), corners[(i + 1) % 4].y());
+        line->setPen(QPen(Qt::red, 2)); // Устанавливаем цвет и толщину линии
+    }
+}
+
+void MainWindow::addRotatedTriangle(QCustomPlot *customPlot, double centerX, double centerY, double base, double height, double angleDegrees)
+{
+    // Преобразуем угол из градусов в радианы
+    double angleRadians = angleDegrees * M_PI / 180.0;
+
+    // Координаты вершин относительно центра (до поворота)
+    QPointF top(0, height);                   // Верхняя вершина
+    QPointF bottomLeft(-base / 2, 0);         // Левая вершина основания
+    QPointF bottomRight(base / 2, 0);         // Правая вершина основания
+
+    // Матрица поворота
+    QTransform rotationMatrix;
+    rotationMatrix.rotate(angleDegrees);
+
+    // Применяем поворот и сдвигаем треугольник в нужное место
+    top = rotationMatrix.map(top) + QPointF(centerX, centerY);
+    bottomLeft = rotationMatrix.map(bottomLeft) + QPointF(centerX, centerY);
+    bottomRight = rotationMatrix.map(bottomRight) + QPointF(centerX, centerY);
+
+    // Добавляем стороны треугольника
+    QCPItemLine *side1 = new QCPItemLine(customPlot);
+    side1->start->setCoords(top.x(), top.y());
+    side1->end->setCoords(bottomLeft.x(), bottomLeft.y());
+    side1->setPen(QPen(Qt::green, 2)); // Цвет и толщина линии
+
+    QCPItemLine *side2 = new QCPItemLine(customPlot);
+    side2->start->setCoords(top.x(), top.y());
+    side2->end->setCoords(bottomRight.x(), bottomRight.y());
+    side2->setPen(QPen(Qt::green, 2));
+
+    QCPItemLine *baseLine = new QCPItemLine(customPlot);
+    baseLine->start->setCoords(bottomLeft.x(), bottomLeft.y());
+    baseLine->end->setCoords(bottomRight.x(), bottomRight.y());
+    baseLine->setPen(QPen(Qt::green, 2));
+}
+
+void MainWindow::reCalculateSatCords(int id,double deltaX,double deltaY){
+    Sputniks& sats = re->satellites;
+    QTime curr_time = re->clock_time;
+    if(sats.tab[id].last_updated.msecsTo(curr_time) <= 1000){
+        sats.tab[id].SatXCalculated=sats.tab[id].SatX;
+        sats.tab[id].SatYCalculated=sats.tab[id].SatY;
+    }else{
+        sats.tab[id].SatXCalculated-=deltaX/3600;
+        sats.tab[id].SatYCalculated-=deltaY/3600;
+
+    }
+}
+
+void MainWindow::plotObject_SatelliteData() {
+    const Sputniks& sats = re->satellites;
+    objectSatPlot->clearPlottables(); // Очищаем старые данные
+    objectSatPlot->clearItems(); // Очищаем старые элементы (текст и эллипсы)
+
+    QPair<double, double> objectPos = {0.0, 0.0}; // Точка объекта
+
+    // Добавляем точку объекта
+    QCPGraph* objectPoint = objectSatPlot->addGraph();
+    objectPoint->setLineStyle(QCPGraph::lsNone);
+    objectPoint->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, Qt::blue, 10));
+    objectPoint->addData(objectPos.first, objectPos.second);
+
+
+    const ResultStructure& parced_data = re->data_info;
+    double v;
+    double course = parced_data.TMGT;
+    if(parced_data.getUpdateTime("SoGN")>parced_data.getUpdateTime("SoGK")){
+        v= parced_data.SoGN *1.854;
+    }else{
+        v= parced_data.SoGK;
+    }
+    //addRotatedRectangle(objectSatPlot, 0, 0, 5*pow(10,6), 3*pow(10,6), course);
+    //addRotatedTriangle(objectSatPlot, 0, 0, 5*pow(10,6), 3*pow(10,6), course);
+    course = qDegreesToRadians(course);
+    double deltaX = v* cos(course);
+    double deltaY = v* sin(course);
+    double xMin = 0, xMax = 0, yMin = 0, yMax = 0;
+    for (int id = 1; id < 93; id++) {
+        if(sats.tab[id].Status){
+            reCalculateSatCords(id,deltaX,deltaY);
+            QColor textcolor = chooseSatColor(sats.tab[id]);
+            // Добавляем метку с номером спутника
+            QCPItemText* textLabel = new QCPItemText(objectSatPlot);
+            textLabel->setPositionAlignment(Qt::AlignCenter);  // Выравнивание текста по центру
+            textLabel->position->setCoords(sats.tab[id].SatXCalculated,sats.tab[id].SatYCalculated);  // Позиция метки (координаты спутника)
+            if(id<10){
+                textLabel->setText("0"+QString::number(id));
+            }else{
+                textLabel->setText(QString::number(id));  // Текст метки (номер спутника)
+            }
+            textLabel->setFont(QFont("Arial", 14));  // Шрифт для текста
+            textLabel->setColor(Qt::black);  // Цвет текста
+            textLabel->setBrush(QBrush(textcolor));  //фон
+            textLabel->setPadding(QMargins(3, 3, 3, 3));  // Отступы вокруг текста (слева, сверху, справа, снизу)
+            xMin = qMin(xMin, sats.tab[id].SatXCalculated);
+            xMax = qMax(xMax, sats.tab[id].SatXCalculated);
+            yMin = qMin(yMin, sats.tab[id].SatYCalculated);
+            yMax = qMax(yMax, sats.tab[id].SatYCalculated);
+        }
+    }
+    // Устанавливаем диапазоны осей
+    double margin = 0.1; // 10% от максимального расстояния
+    xRange = qMax(fabs(xMax), fabs(xMin));
+    yRange = qMax(fabs(yMax), fabs(yMin));
+
+    objectSatPlot->xAxis->setRange(-xRange * (1 + margin), xRange * (1 + margin));
+    objectSatPlot->yAxis->setRange(-yRange * (1 + margin), yRange * (1 + margin));
+
+    objectSatPlot->xAxis->grid()->setSubGridVisible(true); // Включаем под-сетки
+    objectSatPlot->yAxis->grid()->setSubGridVisible(true); // Включаем под-сетки
+
+    objectSatPlot->replot(); // Обновляем график
+}
+
 void MainWindow::show_selected_satellite(int id){
     chosenSatPlot->clearPlottables(); // Очищаем старые данные
     chosenSatPlot->clearItems(); // Очищаем старые элементы (текст и эллипсы)
@@ -208,11 +356,6 @@ void MainWindow::show_selected_satellite(int id){
     textLabel->setColor(Qt::black);  // Цвет текста
     textLabel->setBrush(QBrush(textcolor));  // Фон
     textLabel->setPadding(QMargins(3, 3, 3, 3));  // Отступы вокруг текста
-    double xMin = 0, xMax = 0, yMin = 0, yMax = 0;
-    xMin = qMin(xMin, sats.tab[id].SatX);
-    xMax = qMax(xMax, sats.tab[id].SatX);
-    yMin = qMin(yMin, sats.tab[id].SatY);
-    yMax = qMax(yMax, sats.tab[id].SatY);
     // Обновляем диапазоны осей
     double margin = 0.1; // 10% от максимального расстояния
 
@@ -322,18 +465,31 @@ void MainWindow::fill_the_table(bool first_time) {
         qDebug() << "Нет данных для отображения.";
         return;
     }
-    QStringList keys = {
-        "Lat", "Long",
-        "Alt", "SoGN", "TMGT"
-    };
-    list_results
-                 << QString::number(parced_data.Lat)
-                 << QString::number(parced_data.Long)
-                 << QString::number(parced_data.Alt)
-                 << QString::number(parced_data.SoGN)
-        << QString::number(parced_data.TMGT);
-    //qDebug()<<"list_results"<<list_results;
-
+    QStringList keys;
+    if(parced_data.getUpdateTime("SoGN")>parced_data.getUpdateTime("SoGK")){
+        keys = {
+            "Lat", "Long",
+            "Alt", "SoGN", "TMGT"
+        };
+        list_results
+            << QString::number(parced_data.Lat)
+            << QString::number(parced_data.Long)
+            << QString::number(parced_data.Alt)
+            << QString::number(parced_data.SoGN*1.852)
+            << QString::number(parced_data.TMGT);
+    }else{
+        keys = {
+            "Lat", "Long",
+            "Alt", "SoGK", "TMGT"
+        };
+        list_results
+            << QString::number(parced_data.Lat)
+            << QString::number(parced_data.Long)
+            << QString::number(parced_data.Alt)
+            << QString::number(parced_data.SoGK)
+            << QString::number(parced_data.TMGT);
+        //qDebug()<<"list_results"<<list_results;
+    }
     // Заполняем каждую строку таблицы
     for (int row = 0; row < list_names.length(); ++row) {
         QStandardItem *constantItem = new QStandardItem(list_names.at(row));
@@ -357,6 +513,7 @@ void MainWindow::fill_the_table(bool first_time) {
     if (!first_time){
         qDebug() << "graph заполнен";
         plotSatelliteData();
+        plotObject_SatelliteData();
     }
 
 }
