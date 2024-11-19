@@ -42,23 +42,8 @@
       </rect>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
-     <widget class="QWidget" name="tab_3">
-      <attribute name="title">
-       <string>Наблюдаемые спутники</string>
-      </attribute>
-      <widget class="QGraphicsView" name="graphicsView">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>0</y>
-         <width>951</width>
-         <height>451</height>
-        </rect>
-       </property>
-      </widget>
-     </widget>
      <widget class="QWidget" name="tab_4">
       <attribute name="title">
        <string>Положение объекта</string>
@@ -74,17 +59,32 @@
        </property>
       </widget>
      </widget>
+     <widget class="QWidget" name="tab_3">
+      <attribute name="title">
+       <string>Наблюдаемые спутники</string>
+      </attribute>
+      <widget class="QWidget" name="currSats" native="true">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>10</y>
+         <width>751</width>
+         <height>571</height>
+        </rect>
+       </property>
+      </widget>
+     </widget>
      <widget class="QWidget" name="tab_5">
       <attribute name="title">
        <string>Выбранный спутник</string>
       </attribute>
-      <widget class="QGraphicsView" name="graphicsView_3">
+      <widget class="QWidget" name="chosenSat" native="true">
        <property name="geometry">
         <rect>
-         <x>0</x>
+         <x>10</x>
          <y>10</y>
-         <width>951</width>
-         <height>441</height>
+         <width>751</width>
+         <height>571</height>
         </rect>
        </property>
       </widget>

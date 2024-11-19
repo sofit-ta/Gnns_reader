@@ -34,13 +34,11 @@ MainWindow::MainWindow(QWidget *parent)
     //connect(timer, &QTimer::timeout, this, &MainWindow::updateTable);
 
     model = new QStringListModel(this);
-    QStringList list_of_s1 = {"32","11","14","01"};
-    model->setStringList(list_of_s1);
+    //model->setStringList(list_of_sats_GPS);
     ui->listView->setModel(model);
 
     model1 = new QStringListModel(this);
-    QStringList list_of_s2 = {"15","32","02","03"};
-    model1->setStringList(list_of_s2);
+    //model1->setStringList(list_of_sats_GLONASS);
     ui->listView_2->setModel(model1);
 
     connect(ui->pushButton, &QPushButton::clicked, this, &MainWindow::startReadingData);
@@ -50,25 +48,24 @@ MainWindow::MainWindow(QWidget *parent)
     clocks = new QTimer(this);
     connect(clocks, &QTimer::timeout, this, &MainWindow::updateClock);
 
-
+    //график для окна положения объекта
     objectSatPlot = new QCustomPlot(ui->objectLocation);
     objectSatPlot->setParent(ui->objectLocation); // Связываем с виджетом
     objectSatPlot->resize(ui->objectLocation->size()); // Устанавливаем размер
+    set_the_plot(objectSatPlot);
 
-    // Пример: Настройка осей и начального графика
-    objectSatPlot->xAxis->setLabel("X");
-    objectSatPlot->yAxis->setLabel("Y");
-    double xMin = -100;  // Например, минимальное значение по оси X
-    double xMax = 100;   // Максимальное значение по оси X
-    double yMin = -100;  // Минимальное значение по оси Y
-    double yMax = 100;   // Максимальное значение по оси Y
+    //график для окна показа спутников
+    currSatPlot = new QCustomPlot(ui->currSats);
+    currSatPlot->setParent(ui->currSats); // Связываем с виджетом
+    currSatPlot->resize(ui->currSats->size()); // Устанавливаем размер
+    set_the_plot(currSatPlot);
 
-    objectSatPlot->xAxis->setRange(xMin, xMax); // Устанавливаем диапазон для оси X
-    objectSatPlot->yAxis->setRange(yMin, yMax); // Устанавливаем диапазон для оси Y
-    objectSatPlot->xAxis->grid()->setSubGridVisible(true);  // Включаем под-сетки
-    objectSatPlot->yAxis->grid()->setSubGridVisible(true);  // Включаем под-сетки
+    //график для окна выбора спутника
+    chosenSatPlot = new QCustomPlot(ui->chosenSat);
+    chosenSatPlot->setParent(ui->chosenSat); // Связываем с виджетом
+    chosenSatPlot->resize(ui->chosenSat->size()); // Устанавливаем размер
+    set_the_plot(chosenSatPlot);
 
-    objectSatPlot->replot();
 }
 
 MainWindow::~MainWindow()
@@ -84,15 +81,31 @@ QColor MainWindow::chooseSatColor(Sputnik satellite){
     return QColor(qRgb(142,242,141));
 }
 
+void MainWindow::set_the_plot(QCustomPlot *plot){
+    plot->xAxis->setLabel("X");
+    plot->yAxis->setLabel("Y");
+    double xMin = -100;  // Например, минимальное значение по оси X
+    double xMax = 100;   // Максимальное значение по оси X
+    double yMin = -100;  // Минимальное значение по оси Y
+    double yMax = 100;   // Максимальное значение по оси Y
+
+    plot->xAxis->setRange(xMin, xMax); // Устанавливаем диапазон для оси X
+    plot->yAxis->setRange(yMin, yMax); // Устанавливаем диапазон для оси Y
+    plot->xAxis->grid()->setSubGridVisible(true);  // Включаем под-сетки
+    plot->yAxis->grid()->setSubGridVisible(true);  // Включаем под-сетки
+
+    plot->replot();
+}
+
 void MainWindow::plotSatelliteData() {
     const Sputniks& sats = re->satellites;
-    objectSatPlot->clearPlottables(); // Очищаем старые данные
-    objectSatPlot->clearItems(); // Очищаем старые элементы (текст и эллипсы)
+    currSatPlot->clearPlottables(); // Очищаем старые данные
+    currSatPlot->clearItems(); // Очищаем старые элементы (текст и эллипсы)
 
     QPair<double, double> objectPos = {0.0, 0.0}; // Точка объекта
 
     // Добавляем точку объекта
-    QCPGraph* objectPoint = objectSatPlot->addGraph();
+    QCPGraph* objectPoint = currSatPlot->addGraph();
     objectPoint->setLineStyle(QCPGraph::lsNone);
     objectPoint->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, Qt::blue, 10));
     objectPoint->addData(objectPos.first, objectPos.second);
@@ -107,14 +120,29 @@ void MainWindow::plotSatelliteData() {
     // satellitePoints->setScatterStyle(satelliteStyle);
     // satellitePoints->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, Qt::gray, 20));
     double xMin = 0, xMax = 0, yMin = 0, yMax = 0;
-
     for (int id = 1; id < 93; id++) {
         if(sats.tab[id].Status){
+            if(id<33&&id!=0&&!list_of_sats_GPS.contains(id)){
+                list_of_sats_GPS.append(id);
+                std::sort(list_of_sats_GPS.begin(), list_of_sats_GPS.end());
+                int rowToAdd = list_of_sats_GPS.indexOf(id);
+                model->insertRows(rowToAdd, 1);
+                QModelIndex index = model->index(rowToAdd); // получаем индекс новой строки
+                model->setData(index, QString::number(id)); // задаем значение для строки
+
+            }else if(id>64&&id<93&&!list_of_sats_GLONASS.contains(id)){
+                list_of_sats_GLONASS.append(id);
+                std::sort(list_of_sats_GLONASS.begin(), list_of_sats_GLONASS.end());
+                int rowToAdd = list_of_sats_GLONASS.indexOf(id);
+                model1->insertRows(rowToAdd, 1);
+                QModelIndex index = model1->index(rowToAdd); // получаем индекс новой строки
+                model1->setData(index, QString::number(id)); // задаем значение для строки
+            }
             // Добавляем данные спутников
             //satellitePoints->addData(sats.tab[id].SatX,sats.tab[id].SatY);
             QColor textcolor = chooseSatColor(sats.tab[id]);
             // Добавляем метку с номером спутника
-            QCPItemText* textLabel = new QCPItemText(objectSatPlot);
+            QCPItemText* textLabel = new QCPItemText(currSatPlot);
             textLabel->setPositionAlignment(Qt::AlignCenter);  // Выравнивание текста по центру
             textLabel->position->setCoords(sats.tab[id].SatX,sats.tab[id].SatY);  // Позиция метки (координаты спутника)
             if(id<10){
@@ -130,27 +158,78 @@ void MainWindow::plotSatelliteData() {
             xMax = qMax(xMax, sats.tab[id].SatX);
             yMin = qMin(yMin, sats.tab[id].SatY);
             yMax = qMax(yMax, sats.tab[id].SatY);
+        }else if(list_of_sats_GPS.contains(id)||list_of_sats_GLONASS.contains(id)){
+            if(id<33){
+                int index = list_of_sats_GPS.indexOf(id);
+                model->removeRows(index, 1);
+                list_of_sats_GPS.removeAt(index);
+            }else{
+                int index = list_of_sats_GLONASS.indexOf(id);
+                model1->removeRows(index, 1);
+                list_of_sats_GLONASS.removeAt(index);
+            }
         }
     }
-
     // Устанавливаем диапазоны осей
     double margin = 0.1; // 10% от максимального расстояния
-    double xRange = qMax(fabs(xMax), fabs(xMin));
-    double yRange = qMax(fabs(yMax), fabs(yMin));
+    xRange = qMax(fabs(xMax), fabs(xMin));
+    yRange = qMax(fabs(yMax), fabs(yMin));
 
-    objectSatPlot->xAxis->setRange(-xRange * (1 + margin), xRange * (1 + margin));
-    objectSatPlot->yAxis->setRange(-yRange * (1 + margin), yRange * (1 + margin));
+    currSatPlot->xAxis->setRange(-xRange * (1 + margin), xRange * (1 + margin));
+    currSatPlot->yAxis->setRange(-yRange * (1 + margin), yRange * (1 + margin));
 
-    objectSatPlot->xAxis->grid()->setSubGridVisible(true); // Включаем под-сетки
-    objectSatPlot->yAxis->grid()->setSubGridVisible(true); // Включаем под-сетки
+    currSatPlot->xAxis->grid()->setSubGridVisible(true); // Включаем под-сетки
+    currSatPlot->yAxis->grid()->setSubGridVisible(true); // Включаем под-сетки
 
-    objectSatPlot->replot(); // Обновляем график
+    currSatPlot->replot(); // Обновляем график
 }
+void MainWindow::show_selected_satellite(int id){
+    chosenSatPlot->clearPlottables(); // Очищаем старые данные
+    chosenSatPlot->clearItems(); // Очищаем старые элементы (текст и эллипсы)
+    const Sputniks& sats = re->satellites;
 
+    QCPGraph* objectPoint = chosenSatPlot->addGraph();
+    objectPoint->setLineStyle(QCPGraph::lsNone);
+    objectPoint->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Qt::blue, 10));
+    objectPoint->addData(sats.tab[id].SatX, sats.tab[id].SatY);
+
+    QColor textcolor = chooseSatColor(sats.tab[id]);
+
+    // Добавляем метку с номером спутника
+    QCPItemText* textLabel = new QCPItemText(chosenSatPlot);
+    textLabel->setPositionAlignment(Qt::AlignCenter);  // Выравнивание текста по центру
+    textLabel->position->setCoords(sats.tab[id].SatX, sats.tab[id].SatY);  // Позиция метки (координаты спутника)
+    if(id < 10){
+        textLabel->setText("0" + QString::number(id));
+    } else {
+        textLabel->setText(QString::number(id));  // Текст метки (номер спутника)
+    }
+    textLabel->setFont(QFont("Arial", 14));  // Шрифт для текста
+    textLabel->setColor(Qt::black);  // Цвет текста
+    textLabel->setBrush(QBrush(textcolor));  // Фон
+    textLabel->setPadding(QMargins(3, 3, 3, 3));  // Отступы вокруг текста
+    double xMin = 0, xMax = 0, yMin = 0, yMax = 0;
+    xMin = qMin(xMin, sats.tab[id].SatX);
+    xMax = qMax(xMax, sats.tab[id].SatX);
+    yMin = qMin(yMin, sats.tab[id].SatY);
+    yMax = qMax(yMax, sats.tab[id].SatY);
+    // Обновляем диапазоны осей
+    double margin = 0.1; // 10% от максимального расстояния
+
+    chosenSatPlot->xAxis->setRange(-xRange * (1 + margin), xRange * (1 + margin));
+    chosenSatPlot->yAxis->setRange(-yRange * (1 + margin), yRange * (1 + margin));
+
+    // Включаем сетку и под-сетки
+    chosenSatPlot->xAxis->grid()->setSubGridVisible(true);
+    chosenSatPlot->yAxis->grid()->setSubGridVisible(true);
+
+    chosenSatPlot->replot();  // Обновляем график
+}
 void MainWindow::on_listView_clicked(const QModelIndex &index)
 {
     QString selectedText = ui->listView->model()->data(index, Qt::DisplayRole).toString();
     ui->statusbar->showMessage("Выбран спутник "+ selectedText);
+    show_selected_satellite(selectedText.toInt());
 }
 
 void MainWindow::updateClock() {
@@ -165,6 +244,7 @@ void MainWindow::on_listView_2_clicked(const QModelIndex &index)
 {
     QString selectedText = ui->listView_2->model()->data(index, Qt::DisplayRole).toString();
     ui->statusbar->showMessage("Выбран спутник "+ selectedText);
+    show_selected_satellite(selectedText.toInt());
 }
 
 

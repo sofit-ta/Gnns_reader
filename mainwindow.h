@@ -45,6 +45,8 @@ private slots:
     QColor updateColor(const QString key, ResultStructure parced_data);
     void updateClock();
     QColor chooseSatColor(Sputnik satellite);
+    void set_the_plot(QCustomPlot *plot);
+    void show_selected_satellite(int id);
 
 private:
     Ui::MainWindow *ui;
@@ -56,5 +58,11 @@ private:
     QTimer *clocks; // Объявляем указатель на QTimer
     QStringList list_names; // Добавляем list_names как член класса
     QCustomPlot* objectSatPlot;
+    QCustomPlot* currSatPlot;
+    QCustomPlot* chosenSatPlot;
+    QList<int> list_of_sats_GPS = {};
+    QList<int> list_of_sats_GLONASS = {};
+    double xRange = 100;
+    double yRange = 100;
 };
 #endif // MAINWINDOW_H
