@@ -15,6 +15,7 @@ int last_read_line = -1;
 QString path_to_parcing_file;
 bool change_time_new_file = true;
 QTime clock_time;
+QTime starting_time;
 QTime curr_update_time;
 void read::updateParcingFile(QString fileName){
     path_to_parcing_file = fileName;
@@ -57,7 +58,7 @@ void read::file_reading(){
         last_read_line++;
         }
         if (mainWindow) {
-            qDebug() << "entered";
+            //qDebug() << "entered";
             mainWindow->fill_the_table(false);  // Теперь мы можем вызвать fill_the_table()
         }
     }
@@ -83,16 +84,24 @@ void read::file_reading(){
 
             // Проверяем, что строка содержит хотя бы 2 элемента
             if (parts.size() == 2) {
-                int hours = parts.at(0).left(2).toInt();
-                int minutes = parts.at(0).mid(2, 2).toInt();
-                int seconds = parts.at(0).mid(4, 2).toInt();
-                int milliseconds = parts.at(0).mid(7, 3).toInt();
-                if (hours >= 24) {
-                    hours -= 24;
-                }
+                double amount_of_secs = parts.at(0).toDouble();
+                //qDebug()<<amount_of_secs;
+                int days = floor(amount_of_secs/86400);
+                amount_of_secs-=days*86400;
+                int hours = floor(amount_of_secs/3600);
+                amount_of_secs-=hours*3600;
+                int minutes = floor(amount_of_secs/60);
+                amount_of_secs-=minutes*60;
+                int seconds = floor(amount_of_secs);
+                int milliseconds = (amount_of_secs-seconds)*1000;
+                // qDebug()<<days<<hours<<minutes<<seconds<<milliseconds;
+                // if (hours >= 24) {
+                //     hours -= 24;
+                // }
                 if(change_time_new_file){
-                    qDebug()<<parts.at(0);
+                    // qDebug()<<parts.at(0);
                     clock_time = QTime(hours, minutes, seconds, milliseconds);
+                    starting_time = QTime(hours, minutes, seconds, milliseconds);
                     //qDebug()<<clock_time.toString();
                     change_time_new_file = false;
                     last_read_line--;
@@ -133,13 +142,14 @@ void read::Lat_Log(std::string key, double Coord){
 }
 QString read::Checksum_reading_STR(QString str,std::string key){
     int starPos = str.indexOf("*");
-    int crlfPos = str.indexOf("\r\n");
-    if (starPos != -1 && crlfPos != -1) {
-        data_info.updateValue("Checksum",str.mid(starPos + 1, crlfPos - starPos - 1));
+    if (starPos != -1) {
+        data_info.updateValue("Checksum",str.mid(starPos + 1, str.length()));
         if(key!=""){
             data_info.updateValue(key, str.left(starPos));
+        } else{
+            return str.left(starPos);
+            qDebug()<<starPos;
         }
-        return str.left(starPos);
     }
     return "";
 }
@@ -162,13 +172,13 @@ void read::NMEA_reading(QStringList list_of_param) {
             list_of_param[i]="inf";
         }
     }
-    qDebug()<<syntax;
+    //qDebug()<<syntax;
     if(syntax == "GGA"){
-        qDebug()<<"yes yes";
+        //qDebug()<<"yes yes";
         Checksum_reading_STR(list_of_param.at(14),"DGPSRef");
         QTime timestampnotDouble = QTime::fromString(list_of_param.at(1), "hhmmss.zzz");
         data_info.updateValue("Timestamp",static_cast<double>(timestampnotDouble.msecsSinceStartOfDay()));
-        qDebug()<<data_info.Timestamp;
+        //qDebug()<<data_info.Timestamp;
         Lat_Log("Lat",list_of_param[2].toDouble());
         data_info.updateValue("NS", list_of_param.at(3));
         Lat_Log("Long",list_of_param[4].toDouble());
@@ -186,7 +196,7 @@ void read::NMEA_reading(QStringList list_of_param) {
         data_info.updateValue("DGPSAge",list_of_param.at(13));
     }
     else if(syntax == "RMC"){
-        Checksum_reading_STR(list_of_param.at(12),"Mode");
+        Checksum_reading_STR(list_of_param.at(12),"ModeIndicator");
         QTime timestampnotDouble = QTime::fromString(list_of_param.at(1), "hhmmss.zzz");
         data_info.updateValue("Timestamp",static_cast<double>(timestampnotDouble.msecsSinceStartOfDay()));
         data_info.updateValue("Status",list_of_param.at(2));
@@ -202,7 +212,7 @@ void read::NMEA_reading(QStringList list_of_param) {
 
     }
     else if(syntax == "GLL"){
-        Checksum_reading_STR(list_of_param.at(7),"Mode");
+        Checksum_reading_STR(list_of_param.at(7),"ModeIndicator");
         Lat_Log("Lat",list_of_param[1].toDouble());
         data_info.updateValue("NS", list_of_param.at(2));
         Lat_Log("Long",list_of_param[3].toDouble());
@@ -284,8 +294,8 @@ void read::NMEA_reading(QStringList list_of_param) {
             satellites.updateSputnik(id,"PDOP",list_of_param.at(15).toDouble());
             satellites.updateSputnik(id,"HDOP",list_of_param.at(16).toDouble());
             satellites.updateSputnik(id,"VDOP",vdop.toDouble());
-            qDebug()<<id<<satellites.tab[id].PDOP;
         }
+        qDebug()<<"Спутники "<<id_of_sputniks<<" PDOP:"<<list_of_param.at(15).toDouble()<<" HDOP:"<<list_of_param.at(16).toDouble()<<" VDOP:"<<vdop.toDouble();
     }
     else if(syntax == "GSV"){
         QString SatxCN0 = Checksum_reading_STR(list_of_param.at(19),"");
@@ -308,7 +318,7 @@ void read::NMEA_reading(QStringList list_of_param) {
         no_new_data = true;
         return;
     }
-    qDebug() << "new Данные добавлены в data_info";
+    //qDebug() << "new Данные добавлены в data_info";
     // if (mainWindow) {
     //     qDebug() << "entered";
     //     mainWindow->fill_the_table(false);  // Теперь мы можем вызвать fill_the_table()
@@ -320,7 +330,7 @@ void read::PSTM_reading(QStringList list_of_param) {
 
     QString syntax = list_of_param[0];
     syntax.remove("$PSTM");
-    qDebug()<<syntax;
+    //qDebug()<<syntax;
     for(int i = 0; i < list_of_param.length(); ++i){
         if(list_of_param[i]==""){
             list_of_param[i]="inf";
@@ -350,7 +360,7 @@ void read::PSTM_reading(QStringList list_of_param) {
         data_info.updateValue("Timestamp",static_cast<double>(timestampnotDouble.msecsSinceStartOfDay()));
 
         data_info.updateValue("Timestamp",static_cast<double>(timestampnotDouble.msecsSinceStartOfDay()));
-        qDebug()<<data_info.Timestamp;
+        //qDebug()<<data_info.Timestamp;
         Lat_Log("Lat",list_of_param[2].toDouble());
         data_info.updateValue("NS", list_of_param.at(3));
         Lat_Log("Long",list_of_param[4].toDouble());
@@ -408,7 +418,7 @@ void read::PSTM_reading(QStringList list_of_param) {
         satellites.updateSputnik(id,"SatX",list_of_param.at(9).toDouble());
         satellites.updateSputnik(id,"SatY",list_of_param.at(10).toDouble());
         satellites.updateSputnik(id,"SatZ",list_of_param.at(11).toDouble());
-        qDebug()<<id<<satellites.tab[id].SatX<<satellites.tab[id].SatY;
+        //qDebug()<<id<<satellites.tab[id].SatZ<<list_of_param.at(11).toDouble();
         satellites.updateSputnik(id,"VelX",list_of_param.at(12).toDouble());
         satellites.updateSputnik(id,"VelY",list_of_param.at(13).toDouble());
         satellites.updateSputnik(id,"VelZ",list_of_param.at(14).toDouble());
@@ -423,6 +433,7 @@ void read::PSTM_reading(QStringList list_of_param) {
         satellites.updateSputnik(id,"PredTD",PredTD.toInt());
     }
     else if(syntax== "SAT"){
+        //qDebug()<<list_of_param.at(6);
         QString Satz = Checksum_reading_STR(list_of_param.at(6),"");
         int id = list_of_param.at(1).toInt();
         satellites.updateSputnik(id,"PsR",list_of_param.at(2).toDouble());
@@ -435,7 +446,7 @@ void read::PSTM_reading(QStringList list_of_param) {
         no_new_data = true;
         return;
     }
-    qDebug() << "new Данные добавлены в data_info";
+    //qDebug() << "new Данные добавлены в data_info";
     // if (mainWindow) {
     //     qDebug() << "entered";
     //     mainWindow->fill_the_table(false);  // Теперь мы можем вызвать fill_the_table()

@@ -48,15 +48,41 @@
       <attribute name="title">
        <string>Положение объекта</string>
       </attribute>
-      <widget class="QWidget" name="objectLocation" native="true">
+      <widget class="QFrame" name="frame">
        <property name="geometry">
         <rect>
-         <x>10</x>
-         <y>10</y>
-         <width>751</width>
-         <height>571</height>
+         <x>-1</x>
+         <y>-1</y>
+         <width>761</width>
+         <height>591</height>
         </rect>
        </property>
+       <property name="frameShape">
+        <enum>QFrame::Shape::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Shadow::Raised</enum>
+       </property>
+       <widget class="QWidget" name="objectLocationLat" native="true">
+        <property name="geometry">
+         <rect>
+          <x>13</x>
+          <y>13</y>
+          <width>735</width>
+          <height>278</height>
+         </rect>
+        </property>
+       </widget>
+       <widget class="QWidget" name="objectLocationLong" native="true">
+        <property name="geometry">
+         <rect>
+          <x>13</x>
+          <y>301</y>
+          <width>735</width>
+          <height>277</height>
+         </rect>
+        </property>
+       </widget>
       </widget>
      </widget>
      <widget class="QWidget" name="tab_3">
@@ -81,10 +107,40 @@
       <widget class="QWidget" name="chosenSat" native="true">
        <property name="geometry">
         <rect>
-         <x>10</x>
-         <y>10</y>
-         <width>751</width>
-         <height>571</height>
+         <x>386</x>
+         <y>306</y>
+         <width>364</width>
+         <height>274</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QWidget" name="sputnik_Z" native="true">
+       <property name="geometry">
+        <rect>
+         <x>11</x>
+         <y>306</y>
+         <width>365</width>
+         <height>274</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QWidget" name="sputnik_X" native="true">
+       <property name="geometry">
+        <rect>
+         <x>11</x>
+         <y>21</y>
+         <width>365</width>
+         <height>275</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QWidget" name="sputnik_Y" native="true">
+       <property name="geometry">
+        <rect>
+         <x>386</x>
+         <y>21</y>
+         <width>364</width>
+         <height>275</height>
         </rect>
        </property>
       </widget>
@@ -95,7 +151,7 @@
     <property name="geometry">
      <rect>
       <x>820</x>
-      <y>220</y>
+      <y>280</y>
       <width>221</width>
       <height>321</height>
      </rect>
@@ -127,11 +183,16 @@
       <attribute name="title">
        <string>GPS</string>
       </attribute>
-      <layout class="QGridLayout" name="gridLayout_3">
-       <item row="0" column="0">
-        <widget class="QListView" name="listView"/>
-       </item>
-      </layout>
+      <widget class="QListView" name="listView">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>12</y>
+         <width>155</width>
+         <height>230</height>
+        </rect>
+       </property>
+      </widget>
      </widget>
      <widget class="QWidget" name="tab_2">
       <attribute name="title">
@@ -149,7 +210,7 @@
     <property name="geometry">
      <rect>
       <x>820</x>
-      <y>20</y>
+      <y>60</y>
       <width>221</width>
       <height>181</height>
      </rect>
@@ -215,6 +276,24 @@
     </property>
     <property name="text">
      <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>820</x>
+      <y>40</y>
+      <width>181</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>14</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Информация об объекте</string>
     </property>
    </widget>
   </widget>

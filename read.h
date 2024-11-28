@@ -16,6 +16,9 @@
 class MainWindow;
 
 extern QTime curr_update_time;
+extern QTime clock_time;
+extern QTime starting_time;
+
 struct Sputnik{
     int id;
     QTime last_updated;
@@ -29,9 +32,10 @@ struct Sputnik{
     double SatX = 0.0;
     double SatY = 0.0;
     double SatZ = 0.0;
-    double SatXCalculated = INFINITY;
-    double SatYCalculated = INFINITY;
-    double SatZCalculated = INFINITY;
+    QList <double> SatX_history = {};
+    QList <double> SatY_history = {};
+    QList <double> SatZ_history = {};
+    QList <double> timing_history = {};
     double VelX = 0.0;
     double VelY = 0.0;
     double VelZ = 0.0;
@@ -99,6 +103,42 @@ struct Sputnik{
             if(key=="SatX"||key=="SatY"||key=="SatZ"){
                 Status = true;
             }
+            if(key=="SatX"){
+                if(!(timing_history.empty())){
+                    if(starting_time.secsTo(curr_update_time)==timing_history.last()){
+                        SatX_history.last() = SatX;
+                    }else{
+                        SatX_history.append(SatX);
+                    }
+                }else{
+                    SatX_history.append(SatX);
+                    //qDebug()<<"secs to"<<starting_time.secsTo(curr_update_time);
+                }
+            }
+            if(key=="SatY"){
+                if(!(timing_history.empty())){
+                    if(starting_time.secsTo(curr_update_time)==timing_history.last()){
+                        SatY_history.last() = SatY;
+                    }else{
+                        SatY_history.append(SatY);
+                    }
+                }else{
+                    SatY_history.append(SatY);
+                }
+            }
+            if(key=="SatZ"){
+                if(!(timing_history.empty())){
+                    if(starting_time.secsTo(curr_update_time)==timing_history.last()){
+                        SatZ_history.last() = SatZ;
+                    }else{
+                        SatZ_history.append(SatZ);
+                        timing_history.append(starting_time.secsTo(curr_update_time));
+                    }
+                }else{
+                    SatZ_history.append(SatZ);
+                    timing_history.append(starting_time.secsTo(curr_update_time));
+                }
+            }
         } else {
             std::cerr << "Key not found: " << key << "\n";
         }
@@ -123,8 +163,12 @@ struct ResultStructure {
     double gps_time = 0.0;
     double Timestamp = 0.0;
     double Lat = 0.0;
+    QList<double> Lat_history={0};
+    QList<double> Timing_history_Lat = {1};
     QString NS = "";
     double Long = 0.0;
+    QList<double> Long_history={0};
+    QList<double> Timing_history_Long = {1};
     QString EW = "";
     double Alt = 0.0;
     QString AltVal = "";
@@ -287,43 +331,45 @@ struct ResultStructure {
 
     void updateValue(const std::string& key, ValueType value) {
         auto it = updater.find(key);
-        //std::visit([](auto&& arg) { qDebug() << "Type:" << typeid(arg).name() << "Value:" << arg; }, value);
         if (std::holds_alternative<QString>(value)) {
             QString strValue = std::get<QString>(value);
-            //qDebug() << "QString value:" << strValue;
             if (strValue=="inf" &&lastUpdated[key].toString()=="") {
-                //qDebug() << "QString value:" << strValue;
                 lastUpdated[key] = curr_update_time.addSecs(-10);
-                //qDebug() << "Updated lastUpdated[" << QString::fromStdString(key) << "] to:" << lastUpdated[key].toString();
                 return;
             }else if(strValue=="inf"){
-                //qDebug() << "Updated lastUpdated[" << QString::fromStdString(key) << "] to:" << lastUpdated[key].toString();
                 return;
             }
         }
         if (std::holds_alternative<double>(value)) {
             double dblValue = std::get<double>(value);
-            //qDebug() << "Double value:" << dblValue;
             if (dblValue == INFINITY&&lastUpdated[key].toString()=="") {
-                //qDebug() << "Double value:" << dblValue;
                 lastUpdated[key] = curr_update_time.addSecs(-10);
-                //qDebug() << "Updated lastUpdated[" << QString::fromStdString(key) << "] to:" << lastUpdated[key].toString();
                 return;
             }else if(dblValue == INFINITY){
-                //qDebug() << "Double value:" << dblValue;
                 lastUpdated[key] = lastUpdated[key].addSecs(-5);
-                //qDebug() << "Updated lastUpdated[" << QString::fromStdString(key) << "] to:" << lastUpdated[key].toString();
                 return;
             }
         }
         if (it != updater.end()) {
-            if(key=="Alt"){
-                qDebug()<<"alt"<<lastUpdated[key].toString();
-            }
             it->second(value);  // Update the member
             lastUpdated[key] = curr_update_time;  // Update timestamp
-            if(key=="Alt"){
-                qDebug()<<"alt"<<lastUpdated[key].toString();
+            if(key=="Lat"){
+                if(starting_time.secsTo(curr_update_time)==Timing_history_Lat.last()){
+                    Lat_history.last()=Lat;
+                }else{
+                    Lat_history.append(Lat);
+                    Timing_history_Lat.append(starting_time.secsTo(curr_update_time));
+                    //qDebug()<<"secs to"<<starting_time.secsTo(curr_update_time);
+                }
+            }
+            if(key=="Long"){
+                if(starting_time.secsTo(curr_update_time)==Timing_history_Long.last()){
+                    Long_history.last()=Long;
+                }else{
+                    Long_history.append(Long);
+                    Timing_history_Long.append(starting_time.secsTo(curr_update_time));
+                    //qDebug()<<"secs to"<<starting_time.secsTo(curr_update_time);
+                }
             }
         } else {
             std::cerr << "Key not found: " << key << "\n";
@@ -358,8 +404,6 @@ public:
     // Метод для чтения данных
     void file_reading();
     void updateParcingFile(QString fileName);
-
-    QTime clock_time;
     // Вектор для хранения всех данных
     ResultStructure data_info;
     Sputniks satellites;

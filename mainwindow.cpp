@@ -48,11 +48,33 @@ MainWindow::MainWindow(QWidget *parent)
     clocks = new QTimer(this);
     connect(clocks, &QTimer::timeout, this, &MainWindow::updateClock);
 
-    //график для окна положения объекта
-    objectSatPlot = new QCustomPlot(ui->objectLocation);
-    objectSatPlot->setParent(ui->objectLocation); // Связываем с виджетом
-    objectSatPlot->resize(ui->objectLocation->size()); // Устанавливаем размер
-    set_the_plot(objectSatPlot);
+    //график для окна положения объекта широта
+    objectLatPlot = new QCustomPlot(ui->objectLocationLat);
+    objectLatPlot->setParent(ui->objectLocationLat); // Связываем с виджетом
+    objectLatPlot->resize(ui->objectLocationLat->size()); // Устанавливаем размер
+    // Настройка осей
+    objectLatPlot->addGraph();
+    objectLatPlot->xAxis->setLabel("Время, с");
+    objectLatPlot->yAxis->setLabel("Широта, градусы");
+    objectLatPlot->xAxis->setRange(0, 60); // 60 секунд
+    objectLatPlot->yAxis->setRange(-90, 90); // Диапазон широт
+
+    // Добавляем график
+    objectLatPlot->graph(0)->setPen(QPen(Qt::blue));
+
+    //график для окна положения объекта долгота
+    objectLongPlot = new QCustomPlot(ui->objectLocationLong);
+    objectLongPlot->setParent(ui->objectLocationLong); // Связываем с виджетом
+    objectLongPlot->resize(ui->objectLocationLong->size()); // Устанавливаем размер
+    // Настройка осей
+    objectLongPlot->addGraph();
+    objectLongPlot->xAxis->setLabel("Время, с");
+    objectLongPlot->yAxis->setLabel("Долгота, градусы");
+    objectLongPlot->xAxis->setRange(0, 60); // 60 секунд
+    objectLongPlot->yAxis->setRange(-90, 90); // Диапазон
+
+    // Добавляем график
+    objectLongPlot->graph(0)->setPen(QPen(Qt::blue));
 
     //график для окна показа спутников
     currSatPlot = new QCustomPlot(ui->currSats);
@@ -66,6 +88,46 @@ MainWindow::MainWindow(QWidget *parent)
     chosenSatPlot->resize(ui->chosenSat->size()); // Устанавливаем размер
     set_the_plot(chosenSatPlot);
 
+    //график для окна выбора спутника х
+    satXPlot = new QCustomPlot(ui->sputnik_X);
+    satXPlot->setParent(ui->sputnik_X); // Связываем с виджетом
+    satXPlot->resize(ui->sputnik_X->size()); // Устанавливаем размер
+    // Настройка осей
+    satXPlot->addGraph();
+    satXPlot->xAxis->setLabel("Время, с");
+    satXPlot->yAxis->setLabel("Координата X, м");
+    satXPlot->xAxis->setRange(0, 60); // 60 секунд
+    satXPlot->yAxis->setRange(-90, 90); // Диапазон
+
+    // Добавляем график
+    satXPlot->graph(0)->setPen(QPen(Qt::blue));
+
+    //график для окна выбора спутника y
+    satYPlot = new QCustomPlot(ui->sputnik_Y);
+    satYPlot->setParent(ui->sputnik_Y); // Связываем с виджетом
+    satYPlot->resize(ui->sputnik_Y->size()); // Устанавливаем размер
+    // Настройка осей
+    satYPlot->addGraph();
+    satYPlot->xAxis->setLabel("Время, с");
+    satYPlot->yAxis->setLabel("Координата Y, м");
+    satYPlot->xAxis->setRange(0, 60); // 60 секунд
+    satYPlot->yAxis->setRange(-90, 90); // Диапазон
+
+    // Добавляем график
+    satYPlot->graph(0)->setPen(QPen(Qt::blue));
+    //график для окна выбора спутника z
+    satZPlot = new QCustomPlot(ui->sputnik_Z);
+    satZPlot->setParent(ui->sputnik_Z); // Связываем с виджетом
+    satZPlot->resize(ui->sputnik_Z->size()); // Устанавливаем размер
+    // Настройка осей
+    satZPlot->addGraph();
+    satZPlot->xAxis->setLabel("Время, с");
+    satZPlot->yAxis->setLabel("Координата Z, м");
+    satZPlot->xAxis->setRange(0, 60); // 60 секунд
+    satZPlot->yAxis->setRange(-90, 90); // Диапазон
+
+    // Добавляем график
+    satZPlot->graph(0)->setPen(QPen(Qt::blue));
 }
 
 MainWindow::~MainWindow()
@@ -82,8 +144,8 @@ QColor MainWindow::chooseSatColor(Sputnik satellite){
 }
 
 void MainWindow::set_the_plot(QCustomPlot *plot){
-    plot->xAxis->setLabel("X");
-    plot->yAxis->setLabel("Y");
+    plot->xAxis->setLabel("Координата Х, м");
+    plot->yAxis->setLabel("Координата Y, м");
     double xMin = -100;  // Например, минимальное значение по оси X
     double xMax = 100;   // Максимальное значение по оси X
     double yMin = -100;  // Минимальное значение по оси Y
@@ -110,15 +172,6 @@ void MainWindow::plotSatelliteData() {
     objectPoint->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, Qt::blue, 10));
     objectPoint->addData(objectPos.first, objectPos.second);
 
-    // Добавляем точки спутников и их номера
-    // QCPGraph* satellitePoints = objectSatPlot->addGraph();
-    // satellitePoints->setLineStyle(QCPGraph::lsNone);
-    // QCPScatterStyle satelliteStyle;
-    // satelliteStyle.setShape(QCPScatterStyle::ssDisc);  // Пустой центр
-    // satelliteStyle.setPen(QPen(Qt::green, 2));           // Ободок зеленого цвета, толщиной 2px
-    // satelliteStyle.setSize(20);                          // Увеличиваем размер точек
-    // satellitePoints->setScatterStyle(satelliteStyle);
-    // satellitePoints->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, Qt::gray, 20));
     double xMin = 0, xMax = 0, yMin = 0, yMax = 0;
     for (int id = 1; id < 93; id++) {
         if(sats.tab[id].Status){
@@ -139,7 +192,6 @@ void MainWindow::plotSatelliteData() {
                 model1->setData(index, QString::number(id)); // задаем значение для строки
             }
             // Добавляем данные спутников
-            //satellitePoints->addData(sats.tab[id].SatX,sats.tab[id].SatY);
             QColor textcolor = chooseSatColor(sats.tab[id]);
             // Добавляем метку с номером спутника
             QCPItemText* textLabel = new QCPItemText(currSatPlot);
@@ -181,156 +233,60 @@ void MainWindow::plotSatelliteData() {
     currSatPlot->xAxis->grid()->setSubGridVisible(true); // Включаем под-сетки
     currSatPlot->yAxis->grid()->setSubGridVisible(true); // Включаем под-сетки
 
+    //qDebug() << "graph 1 заполнен";
     currSatPlot->replot(); // Обновляем график
 }
-void MainWindow::addRotatedRectangle(QCustomPlot *customPlot, double x, double y, double width, double height, double angleDegrees)
-{
-    // Углы прямоугольника относительно центра
-    QVector<QPointF> corners = {
-        QPointF(-width / 2, -height / 2), // Левый нижний угол
-        QPointF(width / 2, -height / 2),  // Правый нижний угол
-        QPointF(width / 2, height / 2),   // Правый верхний угол
-        QPointF(-width / 2, height / 2)  // Левый верхний угол
-    };
-
-    // Преобразуем угол из градусов в радианы
-    double angleRadians = angleDegrees * M_PI / 180.0;
-
-    // Матрица поворота: [cos(a) -sin(a); sin(a) cos(a)]
-    QTransform rotationMatrix;
-    rotationMatrix.rotate(angleDegrees);
-
-    // Применяем поворот и сдвигаем прямоугольник в нужное место
-    for (auto &corner : corners)
-    {
-        corner = rotationMatrix.map(corner); // Применяем поворот
-        corner += QPointF(x, y);            // Смещаем центр
-    }
-
-    // Соединяем углы линиями
-    for (int i = 0; i < 4; ++i)
-    {
-        QCPItemLine *line = new QCPItemLine(customPlot);
-        line->start->setCoords(corners[i].x(), corners[i].y());
-        line->end->setCoords(corners[(i + 1) % 4].x(), corners[(i + 1) % 4].y());
-        line->setPen(QPen(Qt::red, 2)); // Устанавливаем цвет и толщину линии
-    }
-}
-
-void MainWindow::addRotatedTriangle(QCustomPlot *customPlot, double centerX, double centerY, double base, double height, double angleDegrees)
-{
-    // Преобразуем угол из градусов в радианы
-    double angleRadians = angleDegrees * M_PI / 180.0;
-
-    // Координаты вершин относительно центра (до поворота)
-    QPointF top(0, height);                   // Верхняя вершина
-    QPointF bottomLeft(-base / 2, 0);         // Левая вершина основания
-    QPointF bottomRight(base / 2, 0);         // Правая вершина основания
-
-    // Матрица поворота
-    QTransform rotationMatrix;
-    rotationMatrix.rotate(angleDegrees);
-
-    // Применяем поворот и сдвигаем треугольник в нужное место
-    top = rotationMatrix.map(top) + QPointF(centerX, centerY);
-    bottomLeft = rotationMatrix.map(bottomLeft) + QPointF(centerX, centerY);
-    bottomRight = rotationMatrix.map(bottomRight) + QPointF(centerX, centerY);
-
-    // Добавляем стороны треугольника
-    QCPItemLine *side1 = new QCPItemLine(customPlot);
-    side1->start->setCoords(top.x(), top.y());
-    side1->end->setCoords(bottomLeft.x(), bottomLeft.y());
-    side1->setPen(QPen(Qt::green, 2)); // Цвет и толщина линии
-
-    QCPItemLine *side2 = new QCPItemLine(customPlot);
-    side2->start->setCoords(top.x(), top.y());
-    side2->end->setCoords(bottomRight.x(), bottomRight.y());
-    side2->setPen(QPen(Qt::green, 2));
-
-    QCPItemLine *baseLine = new QCPItemLine(customPlot);
-    baseLine->start->setCoords(bottomLeft.x(), bottomLeft.y());
-    baseLine->end->setCoords(bottomRight.x(), bottomRight.y());
-    baseLine->setPen(QPen(Qt::green, 2));
-}
-
-void MainWindow::reCalculateSatCords(int id,double deltaX,double deltaY){
-    Sputniks& sats = re->satellites;
-    QTime curr_time = re->clock_time;
-    if(sats.tab[id].last_updated.msecsTo(curr_time) <= 1000){
-        sats.tab[id].SatXCalculated=sats.tab[id].SatX;
-        sats.tab[id].SatYCalculated=sats.tab[id].SatY;
-    }else{
-        sats.tab[id].SatXCalculated-=deltaX/3600;
-        sats.tab[id].SatYCalculated-=deltaY/3600;
-
-    }
-}
-
-void MainWindow::plotObject_SatelliteData() {
-    const Sputniks& sats = re->satellites;
-    objectSatPlot->clearPlottables(); // Очищаем старые данные
-    objectSatPlot->clearItems(); // Очищаем старые элементы (текст и эллипсы)
-
-    QPair<double, double> objectPos = {0.0, 0.0}; // Точка объекта
-
-    // Добавляем точку объекта
-    QCPGraph* objectPoint = objectSatPlot->addGraph();
-    objectPoint->setLineStyle(QCPGraph::lsNone);
-    objectPoint->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, Qt::blue, 10));
-    objectPoint->addData(objectPos.first, objectPos.second);
 
 
+
+
+void MainWindow::plotObject_Data() {
     const ResultStructure& parced_data = re->data_info;
-    double v;
-    double course = parced_data.TMGT;
-    if(parced_data.getUpdateTime("SoGN")>parced_data.getUpdateTime("SoGK")){
-        v= parced_data.SoGN *1.854;
-    }else{
-        v= parced_data.SoGK;
+    // double currentTime = QTime(0,0,0,0).secsTo(timer_time);
+    // ObjectTimeforplot.append(currentTime);
+    // ObjectLat.append(parced_data.Lat);
+    // ObjectLong.append(parced_data.Long);
+    double currentTime = QTime(0,0,0,0).secsTo(timer_time);
+    QList <double> ObjectLatTime = parced_data.Timing_history_Lat;
+    QList <double> ObjectLat = parced_data.Lat_history;
+    if(currentTime!=ObjectLatTime.last()){
+        ObjectLatTime.append(currentTime);
+        ObjectLat.append(ObjectLat.last());
     }
-    //addRotatedRectangle(objectSatPlot, 0, 0, 5*pow(10,6), 3*pow(10,6), course);
-    //addRotatedTriangle(objectSatPlot, 0, 0, 5*pow(10,6), 3*pow(10,6), course);
-    course = qDegreesToRadians(course);
-    double deltaX = v* cos(course);
-    double deltaY = v* sin(course);
-    double xMin = 0, xMax = 0, yMin = 0, yMax = 0;
-    for (int id = 1; id < 93; id++) {
-        if(sats.tab[id].Status){
-            reCalculateSatCords(id,deltaX,deltaY);
-            QColor textcolor = chooseSatColor(sats.tab[id]);
-            // Добавляем метку с номером спутника
-            QCPItemText* textLabel = new QCPItemText(objectSatPlot);
-            textLabel->setPositionAlignment(Qt::AlignCenter);  // Выравнивание текста по центру
-            textLabel->position->setCoords(sats.tab[id].SatXCalculated,sats.tab[id].SatYCalculated);  // Позиция метки (координаты спутника)
-            if(id<10){
-                textLabel->setText("0"+QString::number(id));
-            }else{
-                textLabel->setText(QString::number(id));  // Текст метки (номер спутника)
-            }
-            textLabel->setFont(QFont("Arial", 14));  // Шрифт для текста
-            textLabel->setColor(Qt::black);  // Цвет текста
-            textLabel->setBrush(QBrush(textcolor));  //фон
-            textLabel->setPadding(QMargins(3, 3, 3, 3));  // Отступы вокруг текста (слева, сверху, справа, снизу)
-            xMin = qMin(xMin, sats.tab[id].SatXCalculated);
-            xMax = qMax(xMax, sats.tab[id].SatXCalculated);
-            yMin = qMin(yMin, sats.tab[id].SatYCalculated);
-            yMax = qMax(yMax, sats.tab[id].SatYCalculated);
-        }
+    QList <double> ObjectLongTime = parced_data.Timing_history_Long;
+    QList <double> ObjectLong = parced_data.Long_history;
+    if(currentTime!=ObjectLongTime.last()){
+        ObjectLongTime.append(currentTime);
+        ObjectLong.append(ObjectLong.last());
     }
-    // Устанавливаем диапазоны осей
-    double margin = 0.1; // 10% от максимального расстояния
-    xRange = qMax(fabs(xMax), fabs(xMin));
-    yRange = qMax(fabs(yMax), fabs(yMin));
-
-    objectSatPlot->xAxis->setRange(-xRange * (1 + margin), xRange * (1 + margin));
-    objectSatPlot->yAxis->setRange(-yRange * (1 + margin), yRange * (1 + margin));
-
-    objectSatPlot->xAxis->grid()->setSubGridVisible(true); // Включаем под-сетки
-    objectSatPlot->yAxis->grid()->setSubGridVisible(true); // Включаем под-сетки
-
-    objectSatPlot->replot(); // Обновляем график
+    // Обновляем графики
+    objectLatPlot->graph(0)->setData(ObjectLatTime, ObjectLat);
+    objectLatPlot->xAxis->setRange(0, currentTime); // Диапазон по времени
+    objectLatPlot->yAxis->setRange(*std::min_element(ObjectLat.begin(), ObjectLat.end())-0.01, 0.01+*std::max_element(ObjectLat.begin(), ObjectLat.end())); // Диапазон по широте
+    objectLatPlot->replot();
+    objectLongPlot->graph(0)->setData(ObjectLongTime, ObjectLong);
+    objectLongPlot->xAxis->setRange(0, currentTime); // Диапазон по времени
+    objectLongPlot->yAxis->setRange(*std::min_element(ObjectLong.begin(), ObjectLong.end())-0.01, 0.01+*std::max_element(ObjectLong.begin(), ObjectLong.end())); // Диапазон по долготе
+    objectLongPlot->replot();
 }
 
+void MainWindow::update_plots_of_sat_coords(QCustomPlot *plot,QList<double> xData,QList<double> yData){
+    double currentTime = QTime(0,0,0,0).secsTo(timer_time);
+    //qDebug()<<"before"<<yData;
+    if(currentTime!=xData.last()){
+        xData.append(currentTime);
+        yData.append(yData.last());
+    }
+    //qDebug()<<"after"<<yData;
+    // Обновляем графики
+    plot->graph(0)->setData(xData, yData);
+    if(xData.size()<yData.size()){
+        qDebug()<<yData<<xData;
+    }
+    plot->xAxis->setRange(0, currentTime); // Диапазон по времени
+    plot->yAxis->setRange(*std::min_element(yData.begin(), yData.end())-pow(10,5), pow(10,5)+*std::max_element(yData.begin(), yData.end())); // Диапазон по широте
+    plot->replot();
+}
 void MainWindow::show_selected_satellite(int id){
     chosenSatPlot->clearPlottables(); // Очищаем старые данные
     chosenSatPlot->clearItems(); // Очищаем старые элементы (текст и эллипсы)
@@ -367,20 +323,33 @@ void MainWindow::show_selected_satellite(int id){
     chosenSatPlot->yAxis->grid()->setSubGridVisible(true);
 
     chosenSatPlot->replot();  // Обновляем график
+    QList <double> SatsTime = sats.tab[id].timing_history;
+    update_plots_of_sat_coords(satXPlot,SatsTime,sats.tab[id].SatX_history);
+    update_plots_of_sat_coords(satYPlot,SatsTime,sats.tab[id].SatY_history);
+    update_plots_of_sat_coords(satZPlot,SatsTime,sats.tab[id].SatZ_history);
+    satellite_is_chosen = id;
 }
+
 void MainWindow::on_listView_clicked(const QModelIndex &index)
 {
     QString selectedText = ui->listView->model()->data(index, Qt::DisplayRole).toString();
     ui->statusbar->showMessage("Выбран спутник "+ selectedText);
+    satellite_is_chosen = 0;
     show_selected_satellite(selectedText.toInt());
 }
 
 void MainWindow::updateClock() {
-    re->clock_time = re->clock_time.addSecs(1);
-    qDebug()<<re->clock_time.toString("hh:mm:ss");
-    QString currentTime = re->clock_time.toString("hh:mm:ss");
+    //qDebug()<<clock_time.toString("hh:mm:ss");
+    QString currentTime = timer_time.toString("hh:mm:ss");
+    clock_time = clock_time.addSecs(1);
+    timer_time=timer_time.addSecs(1);
     ui->clock->setText(currentTime);
     updateTable();
+    plotSatelliteData();
+    plotObject_Data();
+    if(satellite_is_chosen!=0){
+        show_selected_satellite(satellite_is_chosen);
+    }
 }
 
 void MainWindow::on_listView_2_clicked(const QModelIndex &index)
@@ -431,7 +400,7 @@ void MainWindow::updateTable() {
     }
 }
 QColor MainWindow::updateColor(const QString key,ResultStructure parced_data){
-    QTime curr_time = re->clock_time;
+    QTime curr_time = clock_time;
     QTime last_update_time = parced_data.getUpdateTime(key.toStdString());
     //qDebug()<<key<<last_update_time.msecsTo(curr_time);
     if (last_update_time.msecsTo(curr_time) <= 5000) {
@@ -442,12 +411,7 @@ QColor MainWindow::updateColor(const QString key,ResultStructure parced_data){
         return Qt::red;
     }
 }
-// QString MainWindow::last_value(QVector<double>) {
-//     // Добавьте вашу логику обработки данных SoGK здесь.
-//     // Например, округлим значение до двух знаков после запятой.
-//     return QString::number();
-// }
-// Метод для заполнения таблицы данными
+
 void MainWindow::fill_the_table(bool first_time) {
     if (re == nullptr) {
         qDebug() << "Ошибка: объект re не инициализирован.";
@@ -509,12 +473,7 @@ void MainWindow::fill_the_table(bool first_time) {
 
     // Подгоняем размер столбцов под текст
     ui->tableView->resizeColumnsToContents();
-    qDebug() << "Таблица заполнена";
-    if (!first_time){
-        qDebug() << "graph заполнен";
-        plotSatelliteData();
-        plotObject_SatelliteData();
-    }
+    //qDebug() << "Таблица заполнена";
 
 }
 
