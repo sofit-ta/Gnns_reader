@@ -105,7 +105,7 @@ struct Sputnik{
             }
             if(key=="SatX"){
                 if(!(timing_history.empty())){
-                    if(starting_time.secsTo(curr_update_time)==timing_history.last()){
+                    if(starting_time.msecsTo(curr_update_time)==timing_history.last()){
                         SatX_history.last() = SatX;
                     }else{
                         SatX_history.append(SatX);
@@ -117,7 +117,7 @@ struct Sputnik{
             }
             if(key=="SatY"){
                 if(!(timing_history.empty())){
-                    if(starting_time.secsTo(curr_update_time)==timing_history.last()){
+                    if(starting_time.msecsTo(curr_update_time)==timing_history.last()){
                         SatY_history.last() = SatY;
                     }else{
                         SatY_history.append(SatY);
@@ -128,15 +128,15 @@ struct Sputnik{
             }
             if(key=="SatZ"){
                 if(!(timing_history.empty())){
-                    if(starting_time.secsTo(curr_update_time)==timing_history.last()){
+                    if(starting_time.msecsTo(curr_update_time)==timing_history.last()){
                         SatZ_history.last() = SatZ;
                     }else{
                         SatZ_history.append(SatZ);
-                        timing_history.append(starting_time.secsTo(curr_update_time));
+                        timing_history.append(starting_time.msecsTo(curr_update_time));
                     }
                 }else{
                     SatZ_history.append(SatZ);
-                    timing_history.append(starting_time.secsTo(curr_update_time));
+                    timing_history.append(starting_time.msecsTo(curr_update_time));
                 }
             }
         } else {
@@ -164,11 +164,11 @@ struct ResultStructure {
     double Timestamp = 0.0;
     double Lat = 0.0;
     QList<double> Lat_history={0};
-    QList<double> Timing_history_Lat = {1};
+    QList<double> Timing_history_Lat = {413};
     QString NS = "";
     double Long = 0.0;
     QList<double> Long_history={0};
-    QList<double> Timing_history_Long = {1};
+    QList<double> Timing_history_Long = {413};
     QString EW = "";
     double Alt = 0.0;
     QString AltVal = "";
@@ -354,20 +354,21 @@ struct ResultStructure {
             it->second(value);  // Update the member
             lastUpdated[key] = curr_update_time;  // Update timestamp
             if(key=="Lat"){
-                if(starting_time.secsTo(curr_update_time)==Timing_history_Lat.last()){
+                if(starting_time.msecsTo(curr_update_time)==Timing_history_Lat.last()){
                     Lat_history.last()=Lat;
+                    //qDebug()<<Lat;
                 }else{
                     Lat_history.append(Lat);
-                    Timing_history_Lat.append(starting_time.secsTo(curr_update_time));
+                    Timing_history_Lat.append(starting_time.msecsTo(curr_update_time));
                     //qDebug()<<"secs to"<<starting_time.secsTo(curr_update_time);
                 }
             }
             if(key=="Long"){
-                if(starting_time.secsTo(curr_update_time)==Timing_history_Long.last()){
+                if(starting_time.msecsTo(curr_update_time)==Timing_history_Long.last()){
                     Long_history.last()=Long;
                 }else{
                     Long_history.append(Long);
-                    Timing_history_Long.append(starting_time.secsTo(curr_update_time));
+                    Timing_history_Long.append(starting_time.msecsTo(curr_update_time));
                     //qDebug()<<"secs to"<<starting_time.secsTo(curr_update_time);
                 }
             }

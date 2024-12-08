@@ -41,8 +41,8 @@ MainWindow::MainWindow(QWidget *parent)
     //model1->setStringList(list_of_sats_GLONASS);
     ui->listView_2->setModel(model1);
 
-    connect(ui->pushButton, &QPushButton::clicked, this, &MainWindow::startReadingData);
-    connect(ui->pushButton_2, &QPushButton::clicked, this, &MainWindow::stopReadingData);
+    connect(ui->startButton, &QPushButton::clicked, this, &MainWindow::startReadingData);
+    connect(ui->stopButton, &QPushButton::clicked, this, &MainWindow::stopReadingData);
     connect(ui->open_file, &QAction::triggered, this, &MainWindow::on_open_file_triggered);
 
     clocks = new QTimer(this);
@@ -246,35 +246,43 @@ void MainWindow::plotObject_Data() {
     // ObjectTimeforplot.append(currentTime);
     // ObjectLat.append(parced_data.Lat);
     // ObjectLong.append(parced_data.Long);
-    double currentTime = QTime(0,0,0,0).secsTo(timer_time);
-    QList <double> ObjectLatTime = parced_data.Timing_history_Lat;
+    double currentTime = QTime(0,0,0,0).msecsTo(timer_time);
+    QList <double> ObjectLatTime;
+    for (size_t i = 0; i < parced_data.Timing_history_Lat.size(); ++i) {
+        ObjectLatTime.append(parced_data.Timing_history_Lat[i]/1000);
+    }
+    // QList <double> ObjectLatTime = parced_data.Timing_history_Lat;
     QList <double> ObjectLat = parced_data.Lat_history;
     if(currentTime!=ObjectLatTime.last()){
-        ObjectLatTime.append(currentTime);
+        ObjectLatTime.append(currentTime/1000);
         ObjectLat.append(ObjectLat.last());
     }
-    QList <double> ObjectLongTime = parced_data.Timing_history_Long;
+    // QList <double> ObjectLongTime = parced_data.Timing_history_Long;
+    QList <double> ObjectLongTime;
+    for (size_t i = 0; i < parced_data.Timing_history_Long.size(); ++i) {
+        ObjectLongTime.append(parced_data.Timing_history_Long[i]/1000);
+    }
     QList <double> ObjectLong = parced_data.Long_history;
     if(currentTime!=ObjectLongTime.last()){
-        ObjectLongTime.append(currentTime);
+        ObjectLongTime.append(currentTime/1000);
         ObjectLong.append(ObjectLong.last());
     }
     // Обновляем графики
     objectLatPlot->graph(0)->setData(ObjectLatTime, ObjectLat);
-    objectLatPlot->xAxis->setRange(0, currentTime); // Диапазон по времени
+    objectLatPlot->xAxis->setRange(0, currentTime/1000); // Диапазон по времени
     objectLatPlot->yAxis->setRange(*std::min_element(ObjectLat.begin(), ObjectLat.end())-0.01, 0.01+*std::max_element(ObjectLat.begin(), ObjectLat.end())); // Диапазон по широте
     objectLatPlot->replot();
     objectLongPlot->graph(0)->setData(ObjectLongTime, ObjectLong);
-    objectLongPlot->xAxis->setRange(0, currentTime); // Диапазон по времени
+    objectLongPlot->xAxis->setRange(0, currentTime/1000); // Диапазон по времени
     objectLongPlot->yAxis->setRange(*std::min_element(ObjectLong.begin(), ObjectLong.end())-0.01, 0.01+*std::max_element(ObjectLong.begin(), ObjectLong.end())); // Диапазон по долготе
     objectLongPlot->replot();
 }
 
 void MainWindow::update_plots_of_sat_coords(QCustomPlot *plot,QList<double> xData,QList<double> yData){
-    double currentTime = QTime(0,0,0,0).secsTo(timer_time);
+    double currentTime = QTime(0,0,0,0).msecsTo(timer_time);
     //qDebug()<<"before"<<yData;
     if(currentTime!=xData.last()){
-        xData.append(currentTime);
+        xData.append(currentTime/1000);
         yData.append(yData.last());
     }
     //qDebug()<<"after"<<yData;
@@ -283,7 +291,7 @@ void MainWindow::update_plots_of_sat_coords(QCustomPlot *plot,QList<double> xDat
     if(xData.size()<yData.size()){
         qDebug()<<yData<<xData;
     }
-    plot->xAxis->setRange(0, currentTime); // Диапазон по времени
+    plot->xAxis->setRange(0, currentTime/1000); // Диапазон по времени
     plot->yAxis->setRange(*std::min_element(yData.begin(), yData.end())-pow(10,5), pow(10,5)+*std::max_element(yData.begin(), yData.end())); // Диапазон по широте
     plot->replot();
 }
@@ -323,7 +331,10 @@ void MainWindow::show_selected_satellite(int id){
     chosenSatPlot->yAxis->grid()->setSubGridVisible(true);
 
     chosenSatPlot->replot();  // Обновляем график
-    QList <double> SatsTime = sats.tab[id].timing_history;
+    QList <double> SatsTime;
+    for (size_t i = 0; i < sats.tab[id].timing_history.size(); ++i) {
+        SatsTime.append(sats.tab[id].timing_history[i]/1000);
+    }
     update_plots_of_sat_coords(satXPlot,SatsTime,sats.tab[id].SatX_history);
     update_plots_of_sat_coords(satYPlot,SatsTime,sats.tab[id].SatY_history);
     update_plots_of_sat_coords(satZPlot,SatsTime,sats.tab[id].SatZ_history);
@@ -341,9 +352,9 @@ void MainWindow::on_listView_clicked(const QModelIndex &index)
 void MainWindow::updateClock() {
     //qDebug()<<clock_time.toString("hh:mm:ss");
     QString currentTime = timer_time.toString("hh:mm:ss");
-    clock_time = clock_time.addSecs(1);
-    timer_time=timer_time.addSecs(1);
-    ui->clock->setText(currentTime);
+    clock_time = clock_time.addMSecs(100);
+    timer_time=timer_time.addMSecs(100);
+    ui->simulationTimer->setText(currentTime);
     updateTable();
     plotSatelliteData();
     plotObject_Data();
@@ -382,7 +393,7 @@ void MainWindow::startReadingData()
     qDebug() << "start";
     button_is_pressed = false; // Сброс состояния
     // Запускаем таймер
-    clocks->start(1000); // обновляется каждую секунду
+    clocks->start(100); // обновляется каждую секунду
 
     // Обновляем сразу же, чтобы пользователь увидел начальное значение
     //updateClock();
@@ -469,10 +480,10 @@ void MainWindow::fill_the_table(bool first_time) {
     }
 
     // Устанавливаем модель для TableView
-    ui->tableView->setModel(model2);
+    ui->tableViewObjectInfo->setModel(model2);
 
     // Подгоняем размер столбцов под текст
-    ui->tableView->resizeColumnsToContents();
+    ui->tableViewObjectInfo->resizeColumnsToContents();
     //qDebug() << "Таблица заполнена";
 
 }

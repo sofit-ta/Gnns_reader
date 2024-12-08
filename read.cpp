@@ -295,7 +295,7 @@ void read::NMEA_reading(QStringList list_of_param) {
             satellites.updateSputnik(id,"HDOP",list_of_param.at(16).toDouble());
             satellites.updateSputnik(id,"VDOP",vdop.toDouble());
         }
-        qDebug()<<"Спутники "<<id_of_sputniks<<" PDOP:"<<list_of_param.at(15).toDouble()<<" HDOP:"<<list_of_param.at(16).toDouble()<<" VDOP:"<<vdop.toDouble();
+        //qDebug()<<"Спутники "<<id_of_sputniks<<" PDOP:"<<list_of_param.at(15).toDouble()<<" HDOP:"<<list_of_param.at(16).toDouble()<<" VDOP:"<<vdop.toDouble();
     }
     else if(syntax == "GSV"){
         QString SatxCN0 = Checksum_reading_STR(list_of_param.at(19),"");
